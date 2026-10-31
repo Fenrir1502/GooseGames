@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,44 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goose Games</title>
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+        }
+        body {
             background: #05000d;
             color: white;
-            font-family: 'Segoe UI', sans-serif;
-            text-align: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
         }
         h1 {
             color: #ffd700;
-            font-size: 2em;
+            font-size: 2.5em;
             margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
         p {
             color: #aaa;
+            font-size: 1.1em;
             margin-bottom: 30px;
         }
         .btn {
             display: block;
-            width: 80%;
-            max-width: 300px;
+            width: 100%;
+            max-width: 320px;
             margin: 15px auto;
             padding: 20px;
-            background: linear-gradient(135deg, #ff0066, #cc0044);
-            color: white;
-            text-decoration: none;
             border-radius: 15px;
             font-size: 1.2em;
             font-weight: bold;
-            box-shadow: 0 5px 15px rgba(255, 0, 102, 0.4);
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white; /* По умолчанию белый текст */
         }
         .btn:active {
             transform: scale(0.95);
+        }
+        
+        /* Казино (Розовый/Неон) */
+        .btn-casino {
+            background: linear-gradient(135deg, #ff0066, #cc0044);
+            box-shadow: 0 5px 15px rgba(255, 0, 102, 0.4);
+        }
+        
+        /* Жизнь (Салатовый, черный текст) */
+        .btn-life {
+            background: linear-gradient(135deg, #00ff88, #009944);
+            color: #000;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+        
+        /* Торговец Эпох (Синий) */
+        .btn-trader {
+            background: linear-gradient(135deg, #00aaff, #0066cc);
+            box-shadow: 0 5px 15px rgba(0, 170, 255, 0.4);
         }
     </style>
 </head>
@@ -51,7 +74,8 @@
     <h1>Goose Games</h1>
     <p>Выбирай игру:</p>
     
-    <a href="casino.html" class="btn">🎰 Играть в Казино</a>
-    <a href="life.html" class="btn">🧬 Играть в Жизнь</a>
+    <a href="casino.html" class="btn btn-casino">🎰 Казино</a>
+    <a href="life.html" class="btn btn-life">🧬 Жизнь</a>
+    <a href="EraTrader.html" class="btn btn-trader">⏳ Торговец Эпох</a>
 </body>
 </html>
