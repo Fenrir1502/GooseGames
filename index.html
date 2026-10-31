@@ -1,19 +1,57 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goose Games</title>
     <style>
-        body { background: #05000d; color: white; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        h1 { color: #ffd700; }
-        a { display: block; margin: 20px auto; padding: 15px; width: 200px; background: #ff0066; color: white; text-decoration: none; border-radius: 10px; font-weight: bold; }
-        a:hover { background: #cc0044; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #05000d;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #ffd700;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: block;
+            width: 80%;
+            max-width: 300px;
+            margin: 15px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff0066, #cc0044);
+            color: white;
+            text-decoration: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 0, 102, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
-    <h1>Добро пожаловать в Goose Games!</h1>
+    <h1>Goose Games</h1>
     <p>Выбирай игру:</p>
     
-    <a href="casino.html">🎰 Играть в Казино</a>
-    <a href="life.html">🧬 Играть в Жизнь</a>
+    <a href="casino.html" class="btn">🎰 Играть в Казино</a>
+    <a href="life.html" class="btn">🧬 Играть в Жизнь</a>
 </body>
 </html>
