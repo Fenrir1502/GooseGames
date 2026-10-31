@@ -1,0 +1,3153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Жизнь — симулятор судьбы</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    color: #eaeaea;
+  }
+  .game {
+    width: 100%;
+    max-width: 760px;
+    background: rgba(22, 33, 62, 0.92);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+    padding: 28px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #f9c74f, #f8961e, #f3722c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #9aa5b1;
+    font-size: 0.9rem;
+    margin-bottom: 22px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stat {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #8b98a5;
+    margin-bottom: 3px;
+  }
+  .stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f9c74f;
+  }
+  .bar-wrap {
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .bar { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+  .bar.money { background: linear-gradient(90deg, #f9c74f, #f8961e); }
+  .bar.health { background: linear-gradient(90deg, #f94144, #f3722c); }
+  .bar.happy { background: linear-gradient(90deg, #577590, #43aa8b); }
+  .bar.edu { background: linear-gradient(90deg, #9b5de5, #f15bb5); }
+  .bar.social { background: linear-gradient(90deg, #577590, #9b5de5); }
+  .bar.faith { background: linear-gradient(90deg, #f4a261, #e76f51); }
+  .bar.mental { background: linear-gradient(90deg, #a06cd5, #e056fd); }
+  .bar.beauty { background: linear-gradient(90deg, #ffb6b9, #f6416c); }
+  .bar.mental.low { background: linear-gradient(90deg, #f94144, #f3722c); }
+
+  .traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    min-height: 28px;
+  }
+  .trait {
+    background: rgba(155, 93, 229, 0.2);
+    border: 1px solid rgba(155, 93, 229, 0.5);
+    color: #d4b3ff;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .event-card {
+    background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    min-height: 100px;
+  }
+  .age-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #f8961e, #f3722c);
+    color: #1a1a2e;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .age-badge.special { background: linear-gradient(90deg, #9b5de5, #f15bb5); color: #fff; }
+  .age-badge.dark { background: linear-gradient(90deg, #6a040f, #370617); color: #fff; }
+  .age-badge.beauty { background: linear-gradient(90deg, #ffb6b9, #f6416c); color: #fff; }
+  .age-badge.army { background: linear-gradient(90deg, #495057, #212529); color: #fff; }
+  .event-text {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #e8e8e8;
+  }
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  button.choice {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #eaeaea;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.98rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    line-height: 1.4;
+  }
+  button.choice:hover {
+    background: rgba(249, 199, 79, 0.15);
+    border-color: #f9c74f;
+    transform: translateX(4px);
+  }
+  button.choice:active { transform: scale(0.98); }
+  button.choice .effect {
+    display: block;
+    font-size: 0.78rem;
+    color: #8b98a5;
+    margin-top: 4px;
+  }
+  button.choice .note {
+    display: block;
+    font-size: 0.75rem;
+    color: #f9c74f;
+    margin-top: 4px;
+    font-style: italic;
+  }
+  button.choice:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  button.primary {
+    background: linear-gradient(90deg, #f8961e, #f3722c);
+    color: #1a1a2e;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+    padding: 15px;
+    font-size: 1.05rem;
+    width: 100%;
+    margin-top: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(248, 150, 30, 0.35);
+    background: linear-gradient(90deg, #f9c74f, #f8961e);
+  }
+
+  .debt-btn-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  button.debt-btn {
+    background: linear-gradient(135deg, rgba(249,199,79,0.25), rgba(248,150,30,0.15));
+    border: 1px solid rgba(249, 199, 79, 0.7);
+    color: #f9c74f;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  button.debt-btn:hover {
+    background: linear-gradient(135deg, rgba(249,199,79,0.4), rgba(248,150,30,0.3));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(249, 199, 79, 0.3);
+  }
+  button.child-btn {
+    background: rgba(67,170,139,0.2); border: 1px solid rgba(67,170,139,0.6); color: #90e0c0;
+    padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 700;
+    transition: all 0.2s; font-family: inherit;
+  }
+  button.child-btn:hover {
+    background: rgba(67,170,139,0.4);
+    transform: translateY(-1px);
+  }
+  button.child-btn:disabled {
+    opacity: 0.4; cursor: not-allowed; transform: none;
+  }
+  button.adopt-btn {
+    background: rgba(155,93,229,0.2); border: 1px solid rgba(155,93,229,0.6); color: #d4b3ff;
+    padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 700;
+    transition: all 0.2s; font-family: inherit;
+  }
+  button.adopt-btn:hover {
+    background: rgba(155,93,229,0.4);
+    transform: translateY(-1px);
+  }
+  button.adopt-btn:disabled {
+    opacity: 0.4; cursor: not-allowed; transform: none;
+  }
+
+  .log {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 18px;
+    padding: 12px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 12px;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #a8b3bd;
+  }
+  .log::-webkit-scrollbar { width: 6px; }
+  .log::-webkit-scrollbar-thumb { background: #f8961e; border-radius: 3px; }
+  .log p { margin-bottom: 4px; }
+  .log .up { color: #90be6d; }
+  .log .down { color: #f94144; }
+  .log .special { color: #d4b3ff; }
+  .log .mental { color: #e056fd; }
+  .hidden { display: none !important; }
+
+  .final { text-align: center; }
+  .final h2 {
+    font-size: 1.7rem;
+    margin-bottom: 14px;
+    background: linear-gradient(90deg, #f9c74f, #f3722c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .final .desc {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #c8d1d9;
+    margin-bottom: 18px;
+  }
+  .achievements-box {
+    background: rgba(0,0,0,0.25);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 18px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .achievements-box:hover {
+    background: rgba(0,0,0,0.35);
+  }
+  .achievements-box h3 {
+    font-size: 0.9rem;
+    color: #f9c74f;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .achievements-box h3 .chevron {
+    transition: transform 0.3s;
+    display: inline-block;
+  }
+  .achievements-box.expanded h3 .chevron {
+    transform: rotate(180deg);
+  }
+  .ach-content {
+    display: none;
+    margin-top: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+  .achievements-box.expanded .ach-content {
+    display: block;
+  }
+  .ach-content::-webkit-scrollbar { width: 6px; }
+  .ach-content::-webkit-scrollbar-thumb { background: #f8961e; border-radius: 3px; }
+  .ach-item { font-size: 0.85rem; color: #d4b3ff; padding: 3px 0; }
+  .ach-item.locked { color: #555; }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 2px 0;
+    color: #c8d1d9;
+  }
+  .identity-box {
+    background: rgba(155,93,229,0.12);
+    border: 1px solid rgba(155,93,229,0.35);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #d4b3ff;
+  }
+  .name-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+    color: #eaeaea;
+    font-size: 1rem;
+    font-family: inherit;
+    margin-top: 10px;
+    outline: none;
+  }
+  .name-input:focus { border-color: #f9c74f; }
+  .name-input.error { border-color: #f94144; }
+  .name-error {
+    color: #f94144;
+    font-size: 0.82rem;
+    margin-top: 6px;
+    min-height: 18px;
+  }
+  .relationship-badge {
+    display: inline-block;
+    background: rgba(249, 65, 68, 0.2);
+    border: 1px solid rgba(249, 65, 68, 0.5);
+    color: #ff9999;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  
+  .preview-box {
+    position: relative;
+    background: linear-gradient(160deg, rgba(249,199,79,0.12), rgba(248,150,30,0.05));
+    border: 1px solid rgba(249,199,79,0.4);
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .reroll-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(249, 199, 79, 0.2);
+    border: 1px solid rgba(249, 199, 79, 0.6);
+    color: #f9c74f;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: inherit;
+    z-index: 10;
+  }
+  .reroll-btn:hover {
+    background: rgba(249, 199, 79, 0.4);
+    transform: translateY(-1px);
+  }
+  .preview-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #f9c74f;
+    margin-bottom: 14px;
+    font-weight: 800;
+    padding-right: 120px;
+  }
+  .preview-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.92rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .preview-row .lbl {
+    color: #8b98a5;
+    font-size: 0.84rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preview-row b {
+    color: #f9c74f;
+    font-weight: 600;
+    text-align: right;
+  }
+  .preview-row.warn b { color: #ff9999; }
+  .preview-row.good b { color: #90e0c0; }
+  .preview-note {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.84rem;
+    color: #d4b3ff;
+    line-height: 1.6;
+    font-style: italic;
+  }
+  
+  .name-hint {
+    font-size: 0.82rem;
+    color: #8b98a5;
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .records-top {
+    background: linear-gradient(160deg, rgba(249,199,79,0.15), rgba(248,150,30,0.05));
+    border: 1px solid rgba(249,199,79,0.45);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+  .records-top h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    color: #f9c74f;
+    font-weight: 800;
+  }
+  .records-top .rec-row {
+    display: flex;
+    justify-content: space-between;
+    color: #d8d0b0;
+    padding: 1px 0;
+  }
+  .records-top .rec-row b { color: #f9c74f; font-weight: 700; }
+
+  .download-btn {
+    background: linear-gradient(90deg, #43aa8b, #90be6d);
+    color: #1a1a2e;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+    padding: 15px;
+    font-size: 1.05rem;
+    width: 100%;
+    margin-top: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(67, 170, 139, 0.35);
+  }
+</style>
+</head>
+<body>
+<div class="game">
+  <h1>Жизнь</h1>
+  <p class="subtitle">Симулятор судьбы — от рождения до итога</p>
+
+  <div id="startScreen">
+    <div class="records-top" id="recordsBox"></div>
+    <div class="achievements-box" id="achMenu" onclick="toggleMenuAchievements()">
+      <h3><span>Все достижения (<span id="achCountLabel">0</span>)</span><span class="chevron">▼</span></h3>
+      <div class="ach-content" id="achMenuContent"></div>
+    </div>
+    <div class="event-card">
+      <p class="event-text">
+        Ты ещё не родился. Судьба готовит тебе случайную страну, пол, семью и стартовые условия.
+        Каждый выбор меняет исход жизни.
+      </p>
+    </div>
+    <button class="primary" onclick="showNameScreen()">🎲 Родиться</button>
+  </div>
+
+  <div id="nameScreen" class="hidden">
+    <div class="preview-box" id="previewBox">
+      <button class="reroll-btn" onclick="rerollPreview(event)">🔄 Перебросить</button>
+    </div>
+    <div class="event-card">
+      <p class="event-text">Введи имя персонажа:</p>
+      <input type="text" id="nameInput" class="name-input" placeholder="" maxlength="20" autocomplete="off">
+      <p class="name-hint" id="nameHint"></p>
+      <p class="name-error" id="nameError"></p>
+    </div>
+    <button class="primary" onclick="startGame()">▶ Начать жизнь</button>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+    <div class="identity-box" id="identityBox"></div>
+    <div class="stats" id="stats"></div>
+    <div class="traits" id="traits"></div>
+    
+    <div class="debt-btn-wrap hidden" id="debtBtnWrap">
+      <button class="debt-btn" onclick="takeDebt()">💳 Взять в долг 50</button>
+    </div>
+    <div class="debt-btn-wrap hidden" id="childBtnWrap">
+      <button class="child-btn" id="childBtn" onclick="suggestChild()">👶 Предложить партнёру завести ребёнка</button>
+    </div>
+    <div class="debt-btn-wrap hidden" id="adoptBtnWrap">
+      <button class="adopt-btn" id="adoptBtn" onclick="tryAdopt()">🏡 Усыновить ребёнка</button>
+    </div>
+
+    <div class="event-card">
+      <span class="age-badge" id="ageBadge">Возраст: 0</span>
+      <p class="event-text" id="eventText"></p>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div id="finalScreen" class="hidden final">
+    <h2 id="finalTitle"></h2>
+    <div id="finalStats"></div>
+    <p class="desc" id="finalDesc"></p>
+    <div class="achievements-box" id="achBox" onclick="toggleAchievements()">
+      <h3><span id="achTitle">Достижения</span><span class="chevron">▼</span></h3>
+      <div class="ach-content" id="achContent"></div>
+    </div>
+    <div class="records-top" id="recordsBoxFinal"></div>
+    <button class="download-btn" onclick="downloadLifeSummary()">📥 Скачать итог жизни</button>
+    <button class="primary" onclick="restart()">🔄 Прожить ещё раз</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ХЕЛПЕРЫ
+   ============================================================ */
+function num(v) { return (typeof v === "number" && !isNaN(v)) ? v : 0; }
+function str(v) { return (typeof v === "string") ? v : ""; }
+function bool(v) { return v === true; }
+function isArr(v) { return Array.isArray(v) ? v : []; }
+function rand(min, max) { return Math.floor(Math.random()*(max-min+1))+min; }
+function clamp(v, min=0, max=100) { return Math.max(min, Math.min(max, Math.round(v))); }
+function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function chance(p) { return Math.random() < p; }
+
+/* ============================================================
+   ДОСТИЖЕНИЯ
+   ============================================================ */
+const ACHIEVEMENTS = [
+  { id:"rich",       name:"💰 Богач",            test:()=> num(S.money)>=120 },
+  { id:"healthy",    name:"❤️ Долгожитель",      test:()=> num(S.health)>=85 },
+  { id:"happy",      name:"😊 Счастливчик",      test:()=> num(S.happiness)>=85 },
+  { id:"smart",      name:"🎓 Эрудит",           test:()=> num(S.education)>=85 },
+  { id:"family",     name:"👨‍👩‍👧 Многодетный",    test:()=> num(S.siblings)>=5 },
+  { id:"migrant",    name:"✈️ Эмигрант",         test:()=> bool(S.emigrated) },
+  { id:"survivor",   name:"🛡️ Выживший",         test:()=> num(S.health)>0 && num(S.age)>=65 },
+  { id:"balanced",   name:"⚖️ Гармония",         test:()=> num(S.money)>=50 && num(S.health)>=60 && num(S.happiness)>=60 && num(S.education)>=60 },
+  { id:"poor",       name:"🥲 Скромная жизнь",   test:()=> num(S.money)<=5 && num(S.age)>=65 },
+  { id:"love",       name:"💕 Нашёл любовь",     test:()=> bool(S.foundLove) },
+  { id:"pride",      name:"🌈 Принял себя",      test:()=> str(S.orientation) && S.orientation!=="straight" && bool(S.selfAccepted) },
+  { id:"hidden",     name:"🤫 Тайная жизнь",     test:()=> str(S.orientation) && S.orientation!=="straight" && bool(S.selfAccepted) && !bool(S.cameOut) },
+  { id:"brave",      name:"🔥 Смельчак",         test:()=> str(S.orientation) && S.orientation!=="straight" && bool(S.cameOut) },
+  { id:"parent",     name:"👶 Родитель",         test:()=> num(S.children)>=1 },
+  { id:"manyChildren", name:"👨‍👩‍👧‍👦 Многодетный родитель", test:()=> num(S.children)>=3 },
+  { id:"twins",      name:"👯 Двойня",           test:()=> S.usedFlags && S.usedFlags.hadTwins },
+  { id:"grand",      name:"👴 Патриарх",         test:()=> num(S.children)>=1 && num(S.age)>=75 },
+  { id:"partner",    name:"💍 Вторая половинка", test:()=> bool(S.hasPartner) },
+  { id:"baggage",    name:"🎒 С прицепом",       test:()=> S.usedFlags && S.usedFlags.hadBaggage },
+  { id:"northkorea", name:"🇰🇵 Выжил в КНДР",     test:()=> str(S.birthCountry)==="Северная Корея" && num(S.age)>=50 },
+  { id:"polyglot",   name:"🌍 Полиглот",         test:()=> num(S.languages)>=3 },
+  { id:"langMaster", name:"🗣️ Мастер языков",   test:()=> num(S.languages)>=5 },
+  { id:"bilingual",  name:"🗣️ Двуязычный",       test:()=> num(S.languages)>=2 },
+  { id:"adoptive",   name:"🏡 Приёмный родитель",test:()=> S.usedFlags && S.usedFlags.adoptedChild },
+  { id:"infertile",  name:"🍂 Бесплодие",        test:()=> S.isInfertile === true },
+  { id:"disabled",   name:"♿ Особенный",         test:()=> str(S.hereditaryDisease)!=="" },
+  { id:"autism",     name:"🧩 Аутизм",           test:()=> str(S.hereditaryDisease)==="Аутизм" },
+  { id:"down",       name:"💛 Синдром Дауна",    test:()=> str(S.hereditaryDisease)==="Синдром Дауна" },
+  { id:"trauma",     name:"🩹 Пережил травму",   test:()=> isArr(S.traumas).length>0 },
+  { id:"survivor2",  name:"🛡️ Несломленный",     test:()=> isArr(S.traumas).length>0 && num(S.happiness)>=60 && num(S.age)>=50 },
+  { id:"extravert",  name:"🎉 Экстраверт",       test:()=> str(S.personality)==="Экстраверт" },
+  { id:"introvert",  name:"📖 Интроверт",        test:()=> str(S.personality)==="Интроверт" },
+  { id:"ambivert",   name:"⚖️ Амбиверт",         test:()=> str(S.personality)==="Амбиверт" },
+  { id:"socialHigh", name:"🌟 Уважаемый",        test:()=> num(S.socialOpinion)>=80 },
+  { id:"socialMax",  name:"💖 Социальный любимчик", test:()=> num(S.socialOpinion)===100 },
+  { id:"socialLow",  name:"🚫 Изгой",            test:()=> num(S.socialOpinion)<=10 && num(S.age)>=40 },
+  { id:"devout",     name:"🕊️ Верующий",         test:()=> num(S.faith)>=70 },
+  { id:"atheist",    name:"🔬 Атеист",           test:()=> str(S.religion)==="Без религии" && num(S.age)>=50 },
+  { id:"survivorMental", name:"🧠 Выжил в отчаянии", test:()=> isArr(S.traumas).length>0 && num(S.mental)>=70 && num(S.age)>=50 },
+  { id:"darkPast",  name:"🖤 Тёмное прошлое",    test:()=> isArr(S.traumas).includes("assault") && num(S.mental)>=50 },
+  { id:"criminal",  name:"⛓️ Преступник",        test:()=> S.isCriminal === true },
+  { id:"street",    name:"💋 Уличная жизнь",     test:()=> S.isProstitute === true },
+  { id:"darkPath",  name:"🩸 Тёмная дорожка",    test:()=> S.isCriminal || S.isProstitute },
+  { id:"afghan",    name:"🇦🇫 Выжил в Афганистане", test:()=> str(S.birthCountry)==="Афганистан" && num(S.age)>=50 },
+  { id:"celebrity", name:"🌟 Встреча со звездой", test:()=> S.metCelebrity === true },
+  { id:"president", name:"🏛️ Аудиенция у президента", test:()=> S.metPresident === true },
+  { id:"beauty",    name:"💅 Красавчик(ца)",     test:()=> num(S.beauty)>=90 },
+  { id:"ugly",      name:"🥲 Комплекс неполноценности", test:()=> num(S.beauty)<=10 && num(S.age)>=40 },
+  { id:"edge",      name:"🪢 На краю",           test:()=> S.survivedEdge === true },
+  { id:"bizEmpire", name:"💼 Бизнес-империя",   test:()=> S.businessLevel >= 3 },
+  { id:"bizExit",   name:"💸 Удачная продажа",  test:()=> S.businessLevel === 0 && S.usedFlags && (S.usedFlags.bizDev1 || S.usedFlags.bizDev2) },
+  { id:"gangster",  name:"🚬 Крёстный отец",    test:()=> S.gangLevel >= 2 },
+  { id:"repented",  name:"🙏 Раскаялся",        test:()=> S.usedFlags && S.usedFlags.gangDev1 && S.isCriminal === false },
+  { id:"priest",    name:"⛪ Служитель культа", test:()=> S.religiousLevel >= 2 },
+  { id:"pilgrim",   name:"🕌 Паломник",         test:()=> S.usedFlags && S.usedFlags.relDev1 && S.religiousLevel < 2 },
+  { id:"scientist", name:"🔬 Учёный",           test:()=> S.education >= 90 && S.usedFlags && S.usedFlags.sciDev1 },
+  { id:"rightsGirl",name:"👩‍🎓 Права девушки",    test:()=> str(S.birthCountry)==="Афганистан" && S.gender==="female" && num(S.money)>=60 && num(S.education)>=60 && num(S.age)>=45 },
+  { id:"schoolBullyGirl", name:"📚 Смелая школьница", test:()=> S.gender==="female" && S.usedFlags && S.usedFlags.schoolBully && num(S.education)>=70 },
+  { id:"assaultSurvivor", name:"🕊️ Пережила насилие", test:()=> S.gender==="female" && isArr(S.traumas).includes("assault") && num(S.mental)>=50 && num(S.age)>=30 },
+  { id:"abandoned", name:"💔 Брошена из-за позора", test:()=> S.gender==="female" && isArr(S.traumas).includes("assault") && S.usedFlags && S.usedFlags.partnerLeftAfterAssault },
+  { id:"addict",    name:"💊 Зависимость",        test:()=> S.addiction > 50 },
+  { id:"recovered", name:"🌱 Победил зависимость", test:()=> S.usedFlags && S.usedFlags.beatAddiction },
+  { id:"debtor",    name:"💳 Должник",            test:()=> S.debt > 0 },
+  { id:"debtFree",  name:"💸 Свободен от долгов", test:()=> S.usedFlags && S.usedFlags.paidDebt },
+  { id:"cheater",   name:"💔 Изменщик",           test:()=> S.usedFlags && S.usedFlags.cheated },
+  { id:"cheated",   name:"😢 Изменён",            test:()=> S.usedFlags && S.usedFlags.wasCheatedOn },
+  { id:"std",       name:"💉 ЗППП",               test:()=> S.hasSTD === true },
+  { id:"slave",     name:"⛓️ Рабство",            test:()=> S.usedFlags && S.usedFlags.enslaved },
+  { id:"escaped",   name:"🏃 Побег",              test:()=> S.usedFlags && S.usedFlags.escapedSlavery },
+  { id:"kidney",    name:"🩸 Продал почку",       test:()=> S.usedFlags && S.usedFlags.soldKidney },
+  { id:"favors",    name:"💋 Договорилась",       test:()=> S.usedFlags && S.usedFlags.favorsForDebt },
+  { id:"doctor",    name:"🏥 Врач",               test:()=> S.profession === "doctor" },
+  { id:"police",    name:"👮 Полицейский",        test:()=> S.profession === "police" },
+  { id:"lawyer",    name:"⚖️ Юрист",              test:()=> S.profession === "lawyer" },
+  { id:"economist", name:"📊 Экономист",          test:()=> S.profession === "economist" },
+  { id:"teacher",   name:"📚 Учитель",            test:()=> S.profession === "teacher" },
+  { id:"tutor",     name:"📖 Репетитор",          test:()=> S.profession === "tutor" },
+  { id:"noStudy",   name:"🚫 Не учился",          test:()=> S.profession === "no_study" },
+  { id:"janitor",   name:"🧹 Дворник",            test:()=> S.profession === "janitor" },
+  { id:"cleaner",   name:"🧽 Уборщик",            test:()=> S.profession === "cleaner" },
+  { id:"homeless",  name:"🏚️ Бездомный",          test:()=> S.profession === "homeless" },
+  { id:"prostitution", name:"💃 Работа 18+",      test:()=> S.profession === "prostitution" },
+  { id:"loader",    name:"📦 Грузчик",            test:()=> S.profession === "loader" },
+  { id:"career",    name:"📈 Успешная карьера",   test:()=> S.careerLevel >= 3 },
+  { id:"somalia",   name:"🇸🇴 Выжил в Сомали",    test:()=> str(S.birthCountry)==="Сомали" && num(S.age)>=50 },
+  { id:"algeria",   name:"🇩🇿 Выжил в Алжире",     test:()=> str(S.birthCountry)==="Алжир" && num(S.age)>=50 },
+  { id:"brazil",    name:"🇧🇷 Дитя карнавала",     test:()=> str(S.birthCountry)==="Бразилия" && num(S.happiness)>=70 },
+  { id:"argentina", name:"🇦🇷 Танго судьбы",      test:()=> str(S.birthCountry)==="Аргентина" && num(S.age)>=60 },
+  { id:"vietnam",   name:"🇻🇳 Вьетнамский дух",   test:()=> str(S.birthCountry)==="Вьетнам" && num(S.education)>=70 },
+  { id:"georgia",   name:"🇬🇪 Гость с Кавказа",    test:()=> str(S.birthCountry)==="Грузия" && num(S.happiness)>=70 },
+  { id:"australia", name:"🇦🇺 Выжил в Австралии",  test:()=> str(S.birthCountry)==="Австралия" && num(S.health)>=70 },
+  { id:"swiss",     name:"🇨🇭 Швейцарский банкир",test:()=> str(S.birthCountry)==="Швейцария" && num(S.money)>=100 },
+  { id:"serbia",    name:"🇷🇸 Сербский характер", test:()=> str(S.birthCountry)==="Сербия" && num(S.faith)>=60 },
+  { id:"germany",   name:"🇩🇪 Немецкий порядок",  test:()=> str(S.birthCountry)==="Германия" && num(S.education)>=80 },
+  { id:"army",      name:"🪖 Служил в армии",     test:()=> S.servedArmy === true },
+  { id:"dodger",    name:"🏃 Косил от армии",     test:()=> S.usedFlags && S.usedFlags.dodgedArmy },
+  { id:"armyHero",  name:"🎖️ Герой службы",       test:()=> S.usedFlags && S.usedFlags.armyHero },
+  { id:"armyVictim",name:"🥀 Сломлен дедовщиной", test:()=> S.usedFlags && S.usedFlags.armyHazed },
+  { id:"armyBully", name:"👊 Дедовщина",          test:()=> S.usedFlags && S.usedFlags.armyBully },
+  { id:"armyEscape",name:"🏃 Побег из части",     test:()=> S.usedFlags && S.usedFlags.armyEscaped },
+  { id:"raped",     name:"🖤 Насильник",          test:()=> S.usedFlags && S.usedFlags.rapist },
+  { id:"brokenMan", name:"💔 Сломленный",         test:()=> S.usedFlags && S.usedFlags.rapist && num(S.mental) <= 30 },
+  { id:"mixed",     name:"🌍 Дитя двух культур",  test:()=> S.isMixed === true },
+  { id:"singleParent", name:"👤 Один родитель",   test:()=> S.isSingleParent === true },
+  { id:"sameSex",   name:"👬 Однополая семья",    test:()=> S.isSameSexParents === true },
+  { id:"motherland",name:"🏡 Вернулся на родину", test:()=> S.usedFlags && S.usedFlags.movedToMotherland },
+  { id:"fatherland",name:"🏡 Вернулся на родину отца", test:()=> S.usedFlags && S.usedFlags.movedToFatherland },
+  { id:"old90",     name:"🎂 90 лет!",            test:()=> num(S.age)>=90 }
+];
+
+/* ============================================================
+   СОСТОЯНИЕ
+   ============================================================ */
+const GLOBAL_ACHIEVEMENTS = new Set();
+let S = {};
+let PREVIEW = null;
+let STAGES_CACHE = [];
+let PENDING_EDGE = false;
+
+/* ============================================================
+   СТРАНЫ
+   ============================================================ */
+const COUNTRIES = {
+  "Иран":        { flag:"🇮🇷", startMoney:[10,40], health:[55,75], happiness:[45,65], education:[30,55], siblings:[1,5], acceptance:0.05, socialDifficulty:0.85, genderBias:0.9, religions:["Ислам (шиизм)","Ислам (суннизм)","Без религии"], therapyQuality:0.2, beautyStandard:0.6, conservative:true, progressiveness:0, educationDifficulty:0.9, armyService:[1,2], armyChance:0.85, desc:"Традиции, семья и непростая экономика." },
+  "Америка":     { flag:"🇺🇸", startMoney:[30,85], health:[60,80], happiness:[55,75], education:[50,75], siblings:[0,3], acceptance:0.80, socialDifficulty:0.25, genderBias:0.2, religions:["Христианство (протестантизм)","Христианство (католицизм)","Иудаизм","Ислам","Без религии","Буддизм"], therapyQuality:0.9, beautyStandard:0.9, conservative:false, progressiveness:2, educationDifficulty:0.2, armyService:[2,4], armyChance:0.15, desc:"Страна возможностей, но и высоких ставок." },
+  "Россия":      { flag:"🇷🇺", startMoney:[15,50], health:[50,70], happiness:[40,62], education:[45,70], siblings:[0,3], acceptance:0.30, socialDifficulty:0.55, genderBias:0.5, religions:["Православие","Ислам","Без религии","Буддизм"], therapyQuality:0.5, beautyStandard:0.85, conservative:true, progressiveness:1, educationDifficulty:0.5, armyService:[1,1], armyChance:0.75, desc:"Широта души и суровые будни." },
+  "Беларусь":    { flag:"🇧🇾", startMoney:[15,45], health:[52,72], happiness:[45,65], education:[40,65], siblings:[0,3], acceptance:0.25, socialDifficulty:0.6, genderBias:0.55, religions:["Православие","Католицизм","Без религии"], therapyQuality:0.45, beautyStandard:0.8, conservative:true, progressiveness:1, educationDifficulty:0.55, armyService:[1,1], armyChance:0.8, desc:"Спокойствие, порядок и близость к природе." },
+  "Китай":       { flag:"🇨🇳", startMoney:[20,60], health:[58,78], happiness:[48,68], education:[55,80], siblings:[0,2], acceptance:0.20, socialDifficulty:0.7, genderBias:0.6, religions:["Без религии","Буддизм","Даосизм","Христианство"], therapyQuality:0.4, beautyStandard:0.7, conservative:true, progressiveness:1, educationDifficulty:0.6, armyService:[2,2], armyChance:0.4, desc:"Дисциплина, конкуренция и большие перспективы." },
+  "Франция":     { flag:"🇫🇷", startMoney:[25,70], health:[62,82], happiness:[58,78], education:[55,80], siblings:[0,3], acceptance:0.85, socialDifficulty:0.2, genderBias:0.15, religions:["Католицизм","Ислам","Без религии","Иудаизм","Протестантизм"], therapyQuality:0.85, beautyStandard:0.8, conservative:false, progressiveness:2, educationDifficulty:0.2, armyService:[1,1], armyChance:0.1, desc:"Культура, соцзащита и вкус к жизни." },
+  "Индия":       { flag:"🇮🇳", startMoney:[5,35],  health:[45,68], happiness:[42,65], education:[35,60], siblings:[1,6], acceptance:0.15, socialDifficulty:0.8, genderBias:0.9, religions:["Индуизм","Ислам","Сикхизм","Буддизм","Христианство"], therapyQuality:0.25, beautyStandard:0.6, conservative:true, progressiveness:0, educationDifficulty:0.85, armyService:[2,3], armyChance:0.5, desc:"Яркие краски, большие семьи и контрасты." },
+  "Япония":      { flag:"🇯🇵", startMoney:[25,70], health:[65,85], happiness:[50,70], education:[60,85], siblings:[0,2], acceptance:0.45, socialDifficulty:0.65, genderBias:0.55, religions:["Синтоизм","Буддизм","Без религии"], therapyQuality:0.7, beautyStandard:0.9, conservative:true, progressiveness:1, educationDifficulty:0.4, armyService:[2,2], armyChance:0.1, desc:"Технологии, дисциплина и долголетие." },
+  "Азербайджан": { flag:"🇦🇿", startMoney:[10,40], health:[50,72], happiness:[45,68], education:[38,62], siblings:[1,5], acceptance:0.10, socialDifficulty:0.8, genderBias:0.85, religions:["Ислам (шиизм)","Ислам (суннизм)","Без религии"], therapyQuality:0.25, beautyStandard:0.65, conservative:true, progressiveness:0, educationDifficulty:0.8, armyService:[1,2], armyChance:0.9, desc:"Гостеприимство, горы и крепкие связи." },
+  "Казахстан":   { flag:"🇰🇿", startMoney:[12,45], health:[52,72], happiness:[45,66], education:[42,66], siblings:[1,4], acceptance:0.20, socialDifficulty:0.65, genderBias:0.6, religions:["Ислам (суннизм)","Православие","Без религии"], therapyQuality:0.4, beautyStandard:0.7, conservative:true, progressiveness:1, educationDifficulty:0.6, armyService:[1,1], armyChance:0.85, desc:"Степь, ресурсы и новые горизонты." },
+  "Северная Корея": { flag:"🇰🇵", startMoney:[2,15], health:[40,65], happiness:[25,50], education:[40,70], siblings:[1,4], acceptance:0.01, socialDifficulty:0.95, genderBias:0.8, religions:["Культ личности","Без религии"], therapyQuality:0.05, beautyStandard:0.4, conservative:true, progressiveness:0, educationDifficulty:0.95, armyService:[10,10], armyChance:1.0, desc:"Жёсткий режим, ограничения и контроль." },
+  "Южная Корея": { flag:"🇰🇷", startMoney:[25,70], health:[62,82], happiness:[45,68], education:[65,90], siblings:[0,2], acceptance:0.40, socialDifficulty:0.65, genderBias:0.5, religions:["Христианство (протестантизм)","Буддизм","Без религии"], therapyQuality:0.8, beautyStandard:1.0, conservative:false, progressiveness:2, educationDifficulty:0.4, armyService:[2,2], armyChance:0.95, desc:"Технологии, конкуренция и давление общества." },
+  "Мексика":     { flag:"🇲🇽", startMoney:[8,40], health:[48,70], happiness:[50,72], education:[35,60], siblings:[1,5], acceptance:0.35, socialDifficulty:0.5, genderBias:0.6, religions:["Католицизм","Протестантизм","Без религии"], therapyQuality:0.45, beautyStandard:0.75, conservative:true, progressiveness:1, educationDifficulty:0.7, armyService:[1,1], armyChance:0.3, desc:"Яркая культура, семья и контрасты." },
+  "Италия":      { flag:"🇮🇹", startMoney:[20,60], health:[60,80], happiness:[55,75], education:[50,75], siblings:[0,3], acceptance:0.50, socialDifficulty:0.45, genderBias:0.45, religions:["Католицизм","Без религии","Ислам"], therapyQuality:0.65, beautyStandard:0.85, conservative:false, progressiveness:2, educationDifficulty:0.35, armyService:[1,1], armyChance:0.15, desc:"Семья, кухня и искусство." },
+  "Египет":      { flag:"🇪🇬", startMoney:[5,30], health:[45,68], happiness:[45,65], education:[35,60], siblings:[1,5], acceptance:0.08, socialDifficulty:0.8, genderBias:0.85, religions:["Ислам (суннизм)","Коптское христианство"], therapyQuality:0.2, beautyStandard:0.6, conservative:true, progressiveness:0, educationDifficulty:0.85, armyService:[1,3], armyChance:0.85, desc:"Древняя история и сложная современность." },
+  "Финляндия":   { flag:"🇫🇮", startMoney:[35,85], health:[68,88], happiness:[65,85], education:[65,90], siblings:[0,2], acceptance:0.90, socialDifficulty:0.15, genderBias:0.1, religions:["Лютеранство","Без религии","Православие"], therapyQuality:1.0, beautyStandard:0.5, conservative:false, progressiveness:2, educationDifficulty:0.15, armyService:[1,2], armyChance:0.8, desc:"Высокий уровень жизни, равенство и счастье." },
+  "Афганистан":  { flag:"🇦🇫", startMoney:[2,15], health:[35,60], happiness:[25,48], education:[20,45], siblings:[2,7], acceptance:0.01, socialDifficulty:0.98, genderBias:0.98, religions:["Ислам (суннизм)"], therapyQuality:0.05, beautyStandard:0.3, conservative:true, progressiveness:0, educationDifficulty:0.98, armyService:[1,2], armyChance:0.9, desc:"Война, жёсткие традиции и тяжёлая судьба." },
+  "Турция":      { flag:"🇹🇷", startMoney:[15,50], health:[55,75], happiness:[48,68], education:[45,70], siblings:[1,4], acceptance:0.30, socialDifficulty:0.65, genderBias:0.65, religions:["Ислам (суннизм)","Без религии"], therapyQuality:0.5, beautyStandard:0.8, conservative:true, progressiveness:1, educationDifficulty:0.6, armyService:[1,2], armyChance:0.9, desc:"Мост между Европой и Азией, контрасты." },
+  "Пакистан":    { flag:"🇵🇰", startMoney:[5,30], health:[42,65], happiness:[38,60], education:[30,55], siblings:[2,6], acceptance:0.05, socialDifficulty:0.9, genderBias:0.9, religions:["Ислам (суннизм)","Ислам (шиизм)"], therapyQuality:0.1, beautyStandard:0.5, conservative:true, progressiveness:0, educationDifficulty:0.9, armyService:[2,2], armyChance:0.85, desc:"Традиции, многодетность и жёсткие нормы." },
+  "Португалия":  { flag:"🇵🇹", startMoney:[20,60], health:[62,82], happiness:[58,78], education:[50,75], siblings:[0,3], acceptance:0.75, socialDifficulty:0.3, genderBias:0.25, religions:["Католицизм","Без религии"], therapyQuality:0.7, beautyStandard:0.75, conservative:false, progressiveness:2, educationDifficulty:0.3, armyService:[1,1], armyChance:0.15, desc:"Тёплый климат, семья и море." },
+  "Алжир":       { flag:"🇩🇿", startMoney:[8,35],  health:[48,70], happiness:[42,64], education:[35,60], siblings:[1,5], acceptance:0.03, socialDifficulty:0.85, genderBias:0.9, religions:["Ислам (суннизм)","Без религии"], therapyQuality:0.15, beautyStandard:0.6, conservative:true, progressiveness:0, educationDifficulty:0.85, armyService:[1,2], armyChance:0.85, desc:"Северная Африка, нефть и жёсткие традиции." },
+  "Сомали":      { flag:"🇸🇴", startMoney:[2,15],  health:[30,55], happiness:[28,50], education:[20,45], siblings:[2,7], acceptance:0.01, socialDifficulty:0.98, genderBias:0.95, religions:["Ислам (суннизм)"], therapyQuality:0.05, beautyStandard:0.35, conservative:true, progressiveness:0, educationDifficulty:0.98, armyService:[1,2], armyChance:0.9, desc:"Гражданская война, засуха и пиратство." },
+  "Вьетнам":     { flag:"🇻🇳", startMoney:[10,40], health:[52,72], happiness:[45,66], education:[45,70], siblings:[1,4], acceptance:0.15, socialDifficulty:0.75, genderBias:0.6, religions:["Буддизм","Без религии","Католицизм","Даосизм"], therapyQuality:0.3, beautyStandard:0.65, conservative:true, progressiveness:1, educationDifficulty:0.7, armyService:[2,2], armyChance:0.75, desc:"Социализм, дисциплина и быстрое развитие." },
+  "Аргентина":   { flag:"🇦🇷", startMoney:[15,50], health:[55,75], happiness:[52,72], education:[45,72], siblings:[0,3], acceptance:0.70, socialDifficulty:0.35, genderBias:0.3, religions:["Католицизм","Протестантизм","Без религии","Иудаизм"], therapyQuality:0.8, beautyStandard:0.8, conservative:false, progressiveness:2, educationDifficulty:0.35, armyService:[1,1], armyChance:0.15, desc:"Футбол, танго и экономические качели." },
+  "Бразилия":    { flag:"🇧🇷", startMoney:[8,45],  health:[50,72], happiness:[55,75], education:[38,65], siblings:[1,5], acceptance:0.55, socialDifficulty:0.55, genderBias:0.5, religions:["Католицизм","Протестантизм","Без религии","Афробразильские культы"], therapyQuality:0.6, beautyStandard:0.85, conservative:false, progressiveness:1, educationDifficulty:0.55, armyService:[1,1], armyChance:0.35, desc:"Карнавал, контрасты и криминал в фавелах." },
+  "Грузия":      { flag:"🇬🇪", startMoney:[10,40], health:[52,75], happiness:[55,80], education:[40,68], siblings:[1,4], acceptance:0.20, socialDifficulty:0.75, genderBias:0.65, religions:["Православие","Ислам (суннизм)","Без религии"], therapyQuality:0.35, beautyStandard:0.75, conservative:true, progressiveness:1, educationDifficulty:0.65, armyService:[1,2], armyChance:0.8, desc:"Гостеприимство, вино и горы Кавказа." },
+  "Австралия":   { flag:"🇦🇺", startMoney:[30,80], health:[65,85], happiness:[58,78], education:[55,80], siblings:[0,3], acceptance:0.80, socialDifficulty:0.25, genderBias:0.25, religions:["Христианство (протестантизм)","Христианство (католицизм)","Без религии","Ислам","Буддизм"], therapyQuality:0.85, beautyStandard:0.8, conservative:false, progressiveness:2, educationDifficulty:0.25, armyService:[1,2], armyChance:0.1, desc:"Солнце, океан и расслабленный образ жизни." },
+  "Швейцария":   { flag:"🇨🇭", startMoney:[40,90], health:[68,88], happiness:[60,80], education:[65,90], siblings:[0,2], acceptance:0.85, socialDifficulty:0.2, genderBias:0.15, religions:["Католицизм","Протестантизм","Без религии"], therapyQuality:0.95, beautyStandard:0.7, conservative:false, progressiveness:2, educationDifficulty:0.2, armyService:[1,1], armyChance:0.85, desc:"Альпы, банки, нейтралитет и порядок." },
+  "Сербия":      { flag:"🇷🇸", startMoney:[10,40], health:[52,72], happiness:[48,70], education:[42,68], siblings:[0,3], acceptance:0.20, socialDifficulty:0.6, genderBias:0.55, religions:["Православие","Католицизм","Ислам (суннизм)","Без религии"], therapyQuality:0.4, beautyStandard:0.8, conservative:true, progressiveness:1, educationDifficulty:0.55, armyService:[1,1], armyChance:0.8, desc:"Балканы, традиции и бурная история." },
+  "Германия":    { flag:"🇩🇪", startMoney:[25,70], health:[60,82], happiness:[52,75], education:[60,85], siblings:[0,2], acceptance:0.80, socialDifficulty:0.25, genderBias:0.2, religions:["Христианство (протестантизм)","Христианство (католицизм)","Ислам","Без религии"], therapyQuality:0.9, beautyStandard:0.7, conservative:false, progressiveness:2, educationDifficulty:0.3, armyService:[1,1], armyChance:0.15, desc:"Порядок, экономика и строгие правила." }
+};
+
+const HEREDITARY_DISEASES = [
+  { id:"autism",    name:"Аутизм",          health:-5,  mental:-10, happiness:-5, socialOpinion:-5, education:-5, desc:"Трудно общаться, но есть свои таланты." },
+  { id:"down",      name:"Синдром Дауна",   health:-15, mental:-5,  happiness:-5, socialOpinion:-15, education:-20, desc:"Тяжёлая генетическая аномалия." },
+  { id:"diabetes",  name:"Диабет",          health:-15, happiness:-3, socialOpinion:0, education:0, desc:"Требует постоянного контроля." },
+  { id:"heart",     name:"Порок сердца",    health:-20, happiness:-5, socialOpinion:0, education:0, desc:"Опасно для жизни, ограничивает активность." },
+  { id:"hemophilia",name:"Гемофилия",       health:-10, happiness:-3, socialOpinion:0, education:0, desc:"Кровь плохо сворачивается, опасны травмы." },
+  { id:"epilepsy",  name:"Эпилепсия",       health:-10, mental:-5, happiness:-5, socialOpinion:-3, education:0, desc:"Приступы пугают окружающих." }
+];
+
+const PARENT_TRAITS = [
+  { id:"understanding", name:"Понимающие",   desc:"Поддерживают.", effect:{happiness:+6,education:+4,socialOpinion:+5} },
+  { id:"strict",        name:"Строгие",      desc:"Много требуют.", effect:{education:+8,happiness:-6,socialOpinion:+3} },
+  { id:"evil",          name:"Злые",         desc:"Крики и наказания.", effect:{happiness:-12,health:-4,socialOpinion:-8,mental:-6} },
+  { id:"kind",          name:"Добрые",       desc:"Выслушают.", effect:{happiness:+8,health:+3,socialOpinion:+3} },
+  { id:"caring",        name:"Заботливые",   desc:"Следят за здоровьем.", effect:{health:+7,education:+4,socialOpinion:+2} },
+  { id:"responsive",    name:"Отзывчивые",   desc:"Помогут.", effect:{happiness:+5,money:+5,socialOpinion:+2} },
+  { id:"loving",        name:"Любящие",      desc:"Тепло и ласка.", effect:{happiness:+9,health:+3,socialOpinion:+4,mental:+3} },
+  { id:"distant",       name:"Отстранённые", desc:"Мало внимания.", effect:{happiness:-7,education:-4,socialOpinion:-5,mental:-3} }
+];
+
+const SIBLING_TRAITS = [
+  { id:"understanding", name:"понимающий",  desc:"Поддержит.", effect:{happiness:+5,health:+3,socialOpinion:+2} },
+  { id:"bully",         name:"издевающийся",desc:"Дразнит.", effect:{happiness:-7,health:-3,socialOpinion:-4,mental:-4} },
+  { id:"friendly",      name:"дружелюбный", desc:"Товарищ.", effect:{happiness:+6,health:+2,socialOpinion:+3} },
+  { id:"closed",        name:"закрытый",    desc:"Не общается.", effect:{education:+3,happiness:-3,socialOpinion:-1} }
+];
+
+const PARTNER_TRAITS = [
+  { id:"loving",       name:"Любящий(ая)",     desc:"Окружает теплом.", effect:{happiness:+8,health:+3,mental:+5} },
+  { id:"supportive",   name:"Поддерживающий(ая)", desc:"Всегда рядом.", effect:{happiness:+6,socialOpinion:+3,mental:+6} },
+  { id:"jealous",      name:"Ревнивый(ая)",    desc:"Скандалы.", effect:{happiness:-6,health:-2,mental:-5} },
+  { id:"cold",         name:"Холодный(ая)",    desc:"Мало эмоций.", effect:{happiness:-4,mental:-3} },
+  { id:"rich",         name:"Богатый(ая)",     desc:"Помогает деньгами.", effect:{money:+8} },
+  { id:"funny",        name:"Весёлый(ая)",     desc:"Не скучно.", effect:{happiness:+6,socialOpinion:+2,mental:+4} },
+  { id:"smart",        name:"Умный(ая)",       desc:"Развивает.", effect:{education:+5,happiness:+4} },
+  { id:"traditional",  name:"Традиционный(ая)",desc:"Хочет семью.", effect:{socialOpinion:+4,happiness:-2} },
+  { id:"rebel",        name:"Бунтарь(ша)",     desc:"Против системы.", effect:{socialOpinion:-4,happiness:+5} }
+];
+
+const TRAITS = {
+  "Трудолюбивый":  { desc:"+2 к деньгам за выбор", apply:(e)=>{ if(e.money) e.money+=2; } },
+  "Умный":         { desc:"+2 к образованию за выбор", apply:(e)=>{ if(e.education) e.education+=2; } },
+  "Здоровяк":      { desc:"+2 к здоровью за выбор", apply:(e)=>{ if(e.health) e.health+=2; } },
+  "Оптимист":      { desc:"+2 к счастью за выбор", apply:(e)=>{ if(e.happiness) e.happiness+=2; } },
+  "Рисковый":      { desc:"Деньги колеблются сильнее", apply:(e)=>{ if(e.money) e.money = Math.round(e.money*1.5); } },
+  "Общительный":   { desc:"+1 счастье и деньги", apply:(e)=>{ if(e.happiness) e.happiness+=1; if(e.money) e.money+=1; } },
+  "Упрямый":       { desc:"−1 счастье, +2 образование", apply:(e)=>{ if(e.happiness) e.happiness-=1; if(e.education) e.education+=2; } },
+  "Верующий":      { desc:"+3 к вере за выбор, +1 соц.мнение", apply:(e)=>{ e.faith = (e.faith||0)+3; e.socialOpinion = (e.socialOpinion||0)+1; } },
+  "Красивый(ая)":  { desc:"+5 к красоте при рождении", apply:(e)=>{ e.beauty = (e.beauty||0)+2; } }
+};
+
+const ORIENTATIONS = {
+  "straight": { name:"Гетеросексуал", short:"⚪ Гетеро", lgbt:false },
+  "gay":      { name:"Гей",           short:"🌈 Гей",    lgbt:true },
+  "lesbian":  { name:"Лесбиянка",     short:"🌈 Лесби",  lgbt:true },
+  "bi":       { name:"Бисексуал",     short:"🌈 Би",     lgbt:true },
+  "pan":      { name:"Пансексуал",    short:"🌈 Пан",    lgbt:true },
+  "asexual":  { name:"Асексуал",      short:"🌈 Асексуал", lgbt:true },
+  "queer":    { name:"Квир",          short:"🌈 Квир",   lgbt:true },
+  "nonbinary":{ name:"Нон-бинарный",  short:"🌈 Нон-бин",lgbt:true },
+  "aromantic":{ name:"Арoмантик",     short:"🌈 Аромант",lgbt:true },
+  "demisexual":{name:"Демисексуал",   short:"🌈 Демисекс",lgbt:true }
+};
+
+const CELEBRITIES = {
+  "Иран": ["режиссёр Асгар Фархади", "футболист Али Даеи"],
+  "Америка": ["актёр Леонардо ДиКаприо", "певица Тейлор Свифт", "Илон Маск"],
+  "Россия": ["режиссёр Никита Михалков", "певица Алла Пугачёва", "хоккеист Александр Овечкин"],
+  "Беларусь": ["писатель Светлана Алексиевич", "певец Дмитрий Колдун"],
+  "Китай": ["актёр Джеки Чан", "баскетболист Яо Мин"],
+  "Франция": ["актёр Жан Рено", "футболист Зинедин Зидан"],
+  "Индия": ["актёр Шахрукх Кхан", "актриса Приянка Чопра"],
+  "Япония": ["режиссёр Хаяо Миядзаки", "певец Хикару Утада"],
+  "Азербайджан": ["певец Эмин Агаларов", "писатель Чингиз Абдуллаев"],
+  "Казахстан": ["боксёр Геннадий Головкин", "певец Димаш Кудайберген"],
+  "Северная Корея": ["(никто — страна закрыта)"],
+  "Южная Корея": ["группа BTS", "режиссёр Пон Джун-хо"],
+  "Мексика": ["актёр Гаэль Гарсиа Берналь", "режиссёр Альфонсо Куарон"],
+  "Италия": ["актёр Роберто Бениньи", "футболист Андреа Пирло"],
+  "Египет": ["певец Амр Диаб"],
+  "Финляндия": ["дирижёр Эса-Пекка Салонен", "хоккеист Теему Селянне"],
+  "Афганистан": ["(никто — страна в войне)"],
+  "Турция": ["актёр Халит Эргенч", "писатель Орхан Памук"],
+  "Пакистан": ["певец Атиф Аслам", "активистка Малала Юсуфзай"],
+  "Португалия": ["футболист Криштиану Роналду"],
+  "Алжир": ["футболист Рияд Махрез", "певец Халед"],
+  "Сомали": ["(никто — страна в войне)"],
+  "Вьетнам": ["генерал Во Нгуен Зиап", "певица Ми Там"],
+  "Аргентина": ["футболист Лионель Месси", "писатель Хорхе Луис Борхес"],
+  "Бразилия": ["футболист Пеле", "модель Жизель Бюндхен", "писатель Пауло Коэльо"],
+  "Грузия": ["футболист Хвича Кварацхелия", "певица Нино Катамадзе", "режиссёр Отар Иоселиани"],
+  "Австралия": ["актёр Хью Джекман", "актриса Марго Робби", "певица Кайли Миноуг"],
+  "Швейцария": ["теннисист Роджер Федерер", "учёный Альберт Эйнштейн"],
+  "Сербия": ["теннисист Новак Джокович", "режиссёр Эмир Кустурица"],
+  "Германия": ["футболист Франц Беккенбауэр", "автогонщик Михаэль Шумахер", "режиссёр Вернер Херцог"]
+};
+
+const NAME_SUGGESTIONS = {
+  "Иран":        { male:["Амир","Реза","Али","Хоссейн","Омид"], female:["Фатима","Лейла","Сара","Мину","Ширин"] },
+  "Америка":     { male:["Джек","Майкл","Джеймс","Крис","Тайлер"], female:["Эмили","Джессика","Сара","Эшли","Мэдисон"] },
+  "Россия":      { male:["Иван","Алексей","Дмитрий","Сергей","Никита"], female:["Анна","Мария","Ольга","Екатерина","Наташа"] },
+  "Беларусь":    { male:["Андрей","Павел","Дмитрий","Максим","Сергей"], female:["Марина","Ольга","Ирина","Наталья","Алеся"] },
+  "Китай":       { male:["Вэй","Цзянь","Мин","Лэй","Хао"], female:["Ли","Сю","Мэй","Цзин","Янь"] },
+  "Франция":     { male:["Пьер","Луи","Анри","Габриэль","Жюль"], female:["Мари","Софи","Камиль","Клэр","Элен"] },
+  "Индия":       { male:["Радж","Аарав","Викрам","Арджун","Кабир"], female:["Прия","Анжали","Дивья","Кавита","Рия"] },
+  "Япония":      { male:["Хиро","Кэндзи","Такуми","Юки","Сота"], female:["Юки","Сакура","Хана","Ай","Мио"] },
+  "Азербайджан": { male:["Эльнур","Рашад","Тимур","Араз","Фарид"], female:["Айгюн","Лейла","Нармин","Гюнель","Сабина"] },
+  "Казахстан":   { male:["Ерлан","Аскар","Нурлан","Тимур","Данияр"], female:["Айгуль","Динара","Алия","Жанар","Мадина"] },
+  "Северная Корея": { male:["Ким","Мин","Чхоль","Хо","Сон"], female:["Сун","Хе","Джи","Юн","Ми"] },
+  "Южная Корея": { male:["Мин-хо","Джи-ху","Со-джун","Хён-у","Тэ-ян"], female:["Со-ён","Джи-ын","Ха-ын","Ми-на","Ю-на"] },
+  "Мексика":     { male:["Хосе","Карлос","Мигель","Луис","Диего"], female:["Мария","София","Лусия","Валентина","Камила"] },
+  "Италия":      { male:["Марко","Лука","Алессандро","Джованни","Маттео"], female:["Джулия","София","Кьяра","Алессия","Франческа"] },
+  "Египет":      { male:["Ахмед","Мохамед","Омар","Хасан","Али"], female:["Фатима","Айша","Нур","Сальма","Мона"] },
+  "Финляндия":   { male:["Микко","Юхани","Антти","Матти","Олави"], female:["Айно","София","Элина","Мария","Лийса"] },
+  "Афганистан":  { male:["Ахмад","Мохаммад","Али","Насрулла","Карим"], female:["Захра","Фатима","Марьям","Назия","Хадиджа"] },
+  "Турция":      { male:["Мехмет","Али","Мустафа","Эмре","Огуз"], female:["Айше","Зейнеп","Элиза","Мелис","Селин"] },
+  "Пакистан":    { male:["Мухаммад","Али","Хасан","Имран","Фарук"], female:["Аиша","Фатима","Саида","Майра","Хания"] },
+  "Португалия":  { male:["Жуан","Педру","Мигел","Руй","Антониу"], female:["Мария","Ана","София","Беатриш","Инеш"] },
+  "Алжир":       { male:["Мохамед","Али","Юсеф","Карим","Рияд"], female:["Амина","Лейла","Ясмин","Сафия","Надия"] },
+  "Сомали":      { male:["Абди","Мохамед","Хасан","Ахмед","Юсуф"], female:["Фархия","Хава","Амина","Сафия","Джамила"] },
+  "Вьетнам":     { male:["Минь","Хунг","Туан","Лонг","Дык"], female:["Линь","Хуонг","Май","Тху","Нга"] },
+  "Аргентина":   { male:["Матиас","Лукас","Хуан","Диего","Санти"], female:["София","Валентина","Камила","Мартина","Лусия"] },
+  "Бразилия":    { male:["Жуан","Педро","Лукас","Габриэл","Рафаэл"], female:["Мария","Ана","Жулия","Беатрис","Камила"] },
+  "Грузия":      { male:["Гиорги","Левани","Дато","Ника","Зураб"], female:["Нино","Тамар","Мариам","Саломе","Кети"] },
+  "Австралия":   { male:["Оливер","Джек","Уильям","Ной","Чарли"], female:["Шарлотта","Оливия","Мия","Изабелла","Эмилия"] },
+  "Швейцария":   { male:["Лука","Ноа","Леон","Ян","Марко"], female:["Миа","Лена","София","Алиса","Эмма"] },
+  "Сербия":      { male:["Марко","Лука","Никола","Стефан","Душан"], female:["Ана","Милица","Йована","Сандра","Елена"] },
+  "Германия":    { male:["Лукас","Леон","Феликс","Максимилиан","Пауль"], female:["Эмма","Миа","Ханна","София","Анна"] }
+};
+
+/* ============================================================
+   РЕКОРДЫ
+   ============================================================ */
+const RECORDS_KEY = "life_records_v45";
+
+function loadRecords() {
+  const def = { bestScore:0, bestAge:0, bestCountry:"", bestGender:"", totalGames:0, achievements:{} };
+  try {
+    const raw = localStorage.getItem(RECORDS_KEY);
+    if (!raw) return def;
+    const r = JSON.parse(raw);
+    if (typeof r !== "object" || r === null) return def;
+    return {
+      bestScore: num(r.bestScore), bestAge: num(r.bestAge),
+      bestCountry: str(r.bestCountry), bestGender: str(r.bestGender),
+      totalGames: num(r.totalGames),
+      achievements: (r.achievements && typeof r.achievements === "object") ? r.achievements : {}
+    };
+  } catch(e) { return def; }
+}
+
+function saveRecords(rec) {
+  try { localStorage.setItem(RECORDS_KEY, JSON.stringify(rec)); return true; }
+  catch(e) { return false; }
+}
+
+function renderRecords(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const r = loadRecords();
+  const achCount = Object.keys(r.achievements||{}).length;
+  el.innerHTML = `<h3>🏆 Рекорды</h3>
+    <div class="rec-row"><span>Лучший счёт</span><b>${r.bestScore||"—"}</b></div>
+    <div class="rec-row"><span>Макс. возраст</span><b>${r.bestAge?r.bestAge+" лет":"—"}</b></div>
+    <div class="rec-row"><span>Лучшая страна</span><b>${r.bestCountry||"—"}</b></div>
+    <div class="rec-row"><span>Сыграно жизней</span><b>${r.totalGames||0}</b></div>
+    <div class="rec-row"><span>Открыто достижений</span><b>${achCount} / ${ACHIEVEMENTS.length}</b></div>
+  `;
+}
+
+function checkAchievements() {
+  ACHIEVEMENTS.forEach(a => {
+    try { if (a.test()) GLOBAL_ACHIEVEMENTS.add(a.id); } catch(e) {}
+  });
+  try {
+    const rec = loadRecords();
+    let changed = false;
+    GLOBAL_ACHIEVEMENTS.forEach(id => {
+      if (!rec.achievements[id]) { rec.achievements[id] = true; changed = true; }
+    });
+    if (changed) saveRecords(rec);
+  } catch(e) {}
+}
+
+/* ============================================================
+   ПЕРЕБРОСИТЬ СУДЬБУ
+   ============================================================ */
+function rerollPreview(e) {
+  if (e) e.stopPropagation();
+  PREVIEW = generatePreview();
+  updatePreviewBox();
+}
+
+function updatePreviewBox() {
+  const { country, countryFlag, countryData, traitName, gender, orientation, siblingsList, parentTrait, religion, isMixed, motherCountry, fatherCountry, currentParentCountry, isInfertile, isSingleParent, isSameSexParents, hereditaryDisease } = PREVIEW;
+  const box = document.getElementById("previewBox");
+  
+  let familyStr = parentTrait.name;
+  let familyIcon = "👪";
+  if (isSameSexParents) { familyStr = `Однополая пара · ${parentTrait.name}`; familyIcon = "👬"; }
+  else if (isSingleParent) { familyStr = `Один родитель · ${parentTrait.name}`; familyIcon = "👤"; }
+  else if (isMixed) { familyStr = `Смешанная · ${parentTrait.name}`; familyIcon = "🌍"; }
+  
+  let diseaseHtml = `<div class="preview-row good"><span class="lbl">✅ Наследственность</span><b>Здоров</b></div>`;
+  if (hereditaryDisease) {
+    diseaseHtml = `<div class="preview-row warn"><span class="lbl">⚠️ Наследственность</span><b>${hereditaryDisease.name}</b></div>`;
+  }
+  
+  let reproductHtml = isInfertile 
+    ? `<div class="preview-row warn"><span class="lbl">🍂 Репродукция</span><b>Бесплодие</b></div>`
+    : `<div class="preview-row good"><span class="lbl">🍀 Репродукция</span><b>Здоров</b></div>`;
+  
+  let orientWarn = "";
+  if (ORIENTATIONS[orientation].lgbt) {
+    const acceptLevel = countryData.acceptance < 0.2 ? "🔴 враждебно" : (countryData.acceptance < 0.5 ? "🟡 настороженно" : "🟢 нормально");
+    orientWarn = `<div class="preview-row"><span class="lbl">🌈 Отношение к ЛГБТ</span><b>${acceptLevel}</b></div>`;
+  }
+  
+  box.innerHTML = `
+    <button class="reroll-btn" onclick="rerollPreview(event)">🔄 Перебросить</button>
+    <div class="preview-title">🎲 Судьба уже решила</div>
+    <div class="preview-grid">
+      <div class="preview-row"><span class="lbl">🌍 Страна</span><b>${countryFlag} ${country}</b></div>
+      <div class="preview-row"><span class="lbl">🎭 Пол</span><b>${gender === "male" ? "👦 Мальчик" : "👧 Девочка"}</b></div>
+      <div class="preview-row"><span class="lbl">🏳️‍🌈 Ориентация</span><b>${ORIENTATIONS[orientation].name}</b></div>
+      ${orientWarn}
+      <div class="preview-row"><span class="lbl">✨ Характер</span><b>${traitName}</b></div>
+      <div class="preview-row"><span class="lbl">🕊️ Религия</span><b>${religion}</b></div>
+      <div class="preview-row"><span class="lbl">${familyIcon} Семья</span><b>${familyStr}</b></div>
+      ${isMixed ? `<div class="preview-row"><span class="lbl">👩 Мать</span><b>${COUNTRIES[motherCountry].flag} ${motherCountry}</b></div>
+                   <div class="preview-row"><span class="lbl">👨 Отец</span><b>${COUNTRIES[fatherCountry].flag} ${fatherCountry}</b></div>` : ""}
+      ${reproductHtml}
+      ${diseaseHtml}
+      <div class="preview-row"><span class="lbl">👨‍👩‍👧 Братья/сёстры</span><b>${describeSiblings(siblingsList)}</b></div>
+      ${gender === "male" ? `<div class="preview-row"><span class="lbl">🪖 Армия</span><b>${countryData.armyService[0]}–${countryData.armyService[1]} лет</b></div>` : ""}
+    </div>
+    <div class="preview-note">
+      💡 ${countryData.desc}
+      ${hereditaryDisease ? `<br>⚠️ ${hereditaryDisease.name}: ${hereditaryDisease.desc}` : ''}
+      ${isMixed ? '<br>🌍 Ты с детства будешь слышать два языка и две культуры.' : ''}
+    </div>
+  `;
+  
+  const suggestions = NAME_SUGGESTIONS[country][gender];
+  document.getElementById("nameHint").textContent =
+    `💡 Подходящие имена для ${gender === "male" ? "мальчика" : "девочки"} из ${country}: ${suggestions.join(", ")}`;
+  
+  const inp = document.getElementById("nameInput");
+  if (inp) inp.placeholder = suggestions[0];
+}
+
+/* ============================================================
+   ГЕНЕРАЦИЯ
+   ============================================================ */
+function generateSiblings(count) {
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const isBrother = chance(0.5);
+    const trait = pick(SIBLING_TRAITS);
+    list.push({
+      gender: isBrother ? "male" : "female",
+      role: isBrother ? (chance(0.5)?"старший брат":"младший брат") : (chance(0.5)?"старшая сестра":"младшая сестра"),
+      trait
+    });
+  }
+  return list;
+}
+
+function describeSiblings(list) {
+  if (!list.length) return "Единственный ребёнок";
+  const counts = {};
+  list.forEach(s => { const key = `${s.role} (${s.trait.name})`; counts[key] = (counts[key]||0) + 1; });
+  return Object.entries(counts).map(([k,v]) => v === 1 ? k : `${v} × ${k}`).join(", ");
+}
+
+function pickOrientation(gender) {
+  if (chance(0.15)) {
+    const options = gender === "male" 
+      ? ["gay","bi","pan","asexual","queer","nonbinary","demisexual"] 
+      : ["lesbian","bi","pan","asexual","queer","nonbinary","demisexual"];
+    options.push("aromantic");
+    return pick(options);
+  }
+  return "straight";
+}
+
+function generatePartner() { return { trait: pick(PARTNER_TRAITS) }; }
+
+function generatePreview() {
+  const countryNames = Object.keys(COUNTRIES);
+  const country = pick(countryNames);
+  const c = COUNTRIES[country];
+  const traitName = pick(Object.keys(TRAITS));
+  const gender = chance(0.5) ? "male" : "female";
+  const orientation = pickOrientation(gender);
+  const sibCount = rand(c.siblings[0], c.siblings[1]);
+  const siblingsList = generateSiblings(sibCount);
+  const parentTrait = pick(PARENT_TRAITS);
+  const religion = pick(c.religions);
+  const beauty = rand(20, 90);
+  const isInfertile = chance(0.10);
+
+  let hereditaryDisease = null;
+  if (chance(0.10)) hereditaryDisease = pick(HEREDITARY_DISEASES);
+
+  let isMixed = false;
+  let isSingleParent = false;
+  let isSameSexParents = false;
+  let motherCountry = country;
+  let fatherCountry = country;
+  let currentParentCountry = country;
+  
+  if (c.progressiveness >= 2 && chance(0.15)) {
+    isSameSexParents = true;
+  } else if (chance(0.20)) {
+    isSingleParent = true;
+  } else if (chance(0.3)) {
+    isMixed = true;
+    const otherCountry = pick(countryNames.filter(c => c !== country));
+    if (chance(0.5)) {
+      motherCountry = otherCountry;
+      fatherCountry = country;
+      currentParentCountry = chance(0.7) ? country : otherCountry;
+    } else {
+      motherCountry = country;
+      fatherCountry = otherCountry;
+      currentParentCountry = chance(0.7) ? country : otherCountry;
+    }
+  }
+  
+  return { 
+    country, countryFlag:c.flag, countryData:c, traitName, gender, orientation, 
+    sibCount, siblingsList, parentTrait, religion, beauty,
+    isInfertile, hereditaryDisease,
+    isMixed, isSingleParent, isSameSexParents,
+    motherCountry, fatherCountry, currentParentCountry
+  };
+}
+
+function validateName(name, gender, country) {
+  const errors = [];
+  if (!name) return errors;
+  if (name.length < 2 || name.length > 20) { errors.push({ type:"block", msg:"Имя должно быть от 2 до 20 символов." }); return errors; }
+  if (!/^[А-Яа-яЁёA-Za-z\- ]+$/.test(name)) { errors.push({ type:"block", msg:"Только буквы, дефис или пробел." }); return errors; }
+  const sugg = NAME_SUGGESTIONS[country];
+  if (sugg) {
+    const sameG = sugg[gender].map(s => s.toLowerCase());
+    const otherG = sugg[gender === "male" ? "female" : "male"].map(s => s.toLowerCase());
+    const lower = name.toLowerCase();
+    if (otherG.includes(lower) && !sameG.includes(lower)) {
+      errors.push({ type:"warn", msg:`⚠ «${name}» обычно имя ${gender === "male" ? "девочки" : "мальчика"}. Можно оставить.` });
+    }
+  }
+  return errors;
+}
+
+/* ============================================================
+   ЭКРАН ИМЕНИ
+   ============================================================ */
+function showNameScreen() {
+  PREVIEW = generatePreview();
+  updatePreviewBox();
+  
+  document.getElementById("nameInput").value = "";
+  document.getElementById("nameError").textContent = "";
+  document.getElementById("nameInput").classList.remove("error");
+  
+  const inp = document.getElementById("nameInput");
+  inp.focus();
+  inp.onkeydown = (e) => { if (e.key === "Enter") startGame(); };
+  inp.oninput = () => { inp.classList.remove("error"); document.getElementById("nameError").textContent = ""; };
+  
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("nameScreen").classList.remove("hidden");
+}
+
+/* ============================================================
+   СТАРТ
+   ============================================================ */
+function startGame() {
+  if (!PREVIEW) PREVIEW = generatePreview();
+  const nameInput = document.getElementById("nameInput");
+  const rawName = (nameInput.value || "").trim();
+  const errors = validateName(rawName, PREVIEW.gender, PREVIEW.country);
+  const blocking = errors.find(e => e.type === "block");
+  if (blocking) { nameInput.classList.add("error"); document.getElementById("nameError").textContent = blocking.msg; return; }
+  const warn = errors.find(e => e.type === "warn");
+  if (warn) document.getElementById("nameError").textContent = warn.msg;
+
+  const playerName = rawName || "Безымянный";
+  const { country, countryFlag, countryData, traitName, gender, orientation, sibCount, siblingsList, parentTrait, religion, beauty,
+          isMixed, isSingleParent, isSameSexParents, motherCountry, fatherCountry, currentParentCountry, isInfertile, hereditaryDisease } = PREVIEW;
+
+  S = {
+    name: playerName, birthCountry: country, country, flag: countryFlag, age:0,
+    money: rand(countryData.startMoney[0], countryData.startMoney[1]),
+    health: rand(countryData.health[0], countryData.health[1]),
+    happiness: rand(countryData.happiness[0], countryData.happiness[1]),
+    education: rand(countryData.education[0], countryData.education[1]),
+    socialOpinion: 50, faith: rand(20, 70), religion,
+    mental: rand(60, 90),
+    beauty: clamp(beauty + (traitName === "Красивый(ая)" ? 10 : 0)),
+    siblings: sibCount, siblingsList, parentTrait, partnerTrait: null,
+    gender, orientation,
+    selfAccepted:false, cameOut:false, familyAccepted:false, familyReacted:false,
+    children: 0, adoptedChildren: 0, hadChild:false, hasPartner:false, languages:1,
+    childCooldown: 0,
+    adoptCooldown: 0,
+    isInfertile: !!isInfertile,
+    hereditaryDisease: hereditaryDisease ? hereditaryDisease.name : "",
+    hereditaryEffect: hereditaryDisease || null,
+    traumas: [], hasBeenBeaten:false, wasPregnant:false,
+    suicidalThoughts: false, suicideAttempted: false, survivedEdge: false,
+    isCriminal: false, isProstitute: false,
+    businessLevel: 0,
+    gangLevel: 0,
+    religiousLevel: 0,
+    metCelebrity: false, metPresident: false,
+    personality: null, socialScore: 0,
+    addiction: 0,
+    debt: 0,
+    hasSTD: false,
+    profession: null,
+    careerLevel: 0,
+    servedArmy: false,
+    armyYears: 0,
+    armyStartAge: 0,
+    armyEndAge: 0,
+    armySubStage: 0,
+    isMixed: !!isMixed,
+    isSingleParent: !!isSingleParent,
+    isSameSexParents: !!isSameSexParents,
+    motherCountry: motherCountry || country,
+    fatherCountry: fatherCountry || country,
+    currentParentCountry: currentParentCountry || country,
+    usedFlags:{},
+    traits:[traitName],
+    log:[], stageIndex:0, alive:true,
+    emigrated:false, foundLove:false,
+    achievements:[], usedEvents:[],
+    deathReason: "",
+    maxAgeLimit: 90,
+    _ended: false
+  };
+
+  STAGES_CACHE = getStages();
+  applyParentTrait();
+  applySiblingsTraits();
+  applyHereditaryDisease();
+
+  if (S.beauty > 80) {
+    S.happiness = clamp(S.happiness + 10);
+    S.mental = clamp(S.mental + 5);
+    addLog(`✨ Ты очень красив(а)! Окружающие восхищаются тобой.`, "up");
+  } else if (S.beauty < 30) {
+    S.happiness = clamp(S.happiness - 10);
+    S.mental = clamp(S.mental - 10);
+    addLog(`👎 Ты не отличаешься красотой. Общество будет жестоко к тебе.`, "down");
+  }
+
+  addLog(`👶 ${S.name} родился(ась) в ${countryFlag} ${country}.`, "up");
+  if (isSameSexParents) {
+    addLog(`👬 Тебя воспитывает однополая пара.`, "special");
+  } else if (isSingleParent) {
+    addLog(`👤 Тебя воспитывает один родитель.`, "special");
+  } else if (isMixed) {
+    addLog(`🌍 Смешанная семья: мать из ${motherCountry}, отец из ${fatherCountry}. Живёте в ${currentParentCountry}.`, "special");
+    S.usedFlags.isMixedFamily = true;
+  }
+  addLog(`✨ Черта характера: ${traitName} — ${TRAITS[traitName].desc}`, "special");
+  addLog(`🕊️ Религия: ${religion}`, "special");
+  addLog(`👪 Родители: ${parentTrait.name} — ${parentTrait.desc}`, "special");
+  addLog(`👨‍👩‍👧 ${describeSiblings(siblingsList)}`, "");
+  
+  if (S.isInfertile) {
+    addLog(`🍂 Врачи сказали, что ты бесплоден(на). Завести своих детей не получится.`, "down");
+  }
+  
+  if (S.hereditaryDisease) {
+    addLog(`⚠️ Наследственное заболевание: ${S.hereditaryDisease}.`, "down");
+  }
+
+  if (ORIENTATIONS[orientation].lgbt) {
+    const acc = countryData.acceptance;
+    let t = acc < 0.2 ? "В этой стране к этому относятся очень плохо."
+           : acc < 0.5 ? "Здесь к этому относятся настороженно."
+           : "Здесь к этому относятся в целом нормально.";
+    addLog(`🌈 Ориентация: ${ORIENTATIONS[orientation].name}. ${t}`, "down");
+  }
+
+  document.getElementById("nameScreen").classList.add("hidden");
+  document.getElementById("finalScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+
+  renderStats(); renderTraits(); renderIdentity(); renderLog();
+  updateDebtButton(); updateChildButton(); updateAdoptButton();
+  nextStage();
+}
+
+function applyParentTrait() {
+  const pt = S.parentTrait;
+  if (!pt || !pt.effect) return;
+  for (const [k,v] of Object.entries(pt.effect)) {
+    if (k === "money") S.money = Math.max(0, S.money + v);
+    else if (S[k] !== undefined) S[k] = clamp(S[k] + v);
+  }
+}
+function applySiblingsTraits() {
+  S.siblingsList.forEach(sib => {
+    if (!sib.trait || !sib.trait.effect) return;
+    for (const [k,v] of Object.entries(sib.trait.effect)) {
+      if (k === "money") S.money = Math.max(0, S.money + v);
+      else if (S[k] !== undefined) S[k] = clamp(S[k] + v);
+    }
+  });
+}
+function applyPartnerTrait() {
+  const pt = S.partnerTrait;
+  if (!pt || !pt.effect) return;
+  for (const [k,v] of Object.entries(pt.effect)) {
+    if (k === "money") S.money = Math.max(0, S.money + v);
+    else if (S[k] !== undefined) S[k] = clamp(S[k] + v);
+  }
+}
+function applyHereditaryDisease() {
+  if (!S.hereditaryEffect) return;
+  const d = S.hereditaryEffect;
+  if (d.health) S.health = clamp(S.health + d.health);
+  if (d.mental) S.mental = clamp(S.mental + d.mental);
+  if (d.happiness) S.happiness = clamp(S.happiness + d.happiness);
+  if (d.socialOpinion) S.socialOpinion = clamp(S.socialOpinion + d.socialOpinion);
+  if (d.education) S.education = clamp(S.education + d.education);
+}
+
+function applySocial(delta, opts={}) {
+  const c = COUNTRIES[S.country];
+  let mult = 1;
+  if (delta < 0) { mult = 1 + c.socialDifficulty; if (S.gender === "female") mult *= (1 + c.genderBias*0.5); }
+  else { mult = 1 + (1 - c.socialDifficulty)*0.5; }
+  if (opts.genderSensitive && S.gender === "female") mult *= (1 + c.genderBias);
+  if (delta < 0 && S.beauty < 30) mult *= 1.5;
+  const change = Math.round(delta * mult);
+  S.socialOpinion = clamp(S.socialOpinion + change);
+  return change;
+}
+
+/* ============================================================
+   КНОПКА ДОЛГА
+   ============================================================ */
+function updateDebtButton() {
+  const wrap = document.getElementById("debtBtnWrap");
+  if (!wrap) return;
+  if (S.alive && S.age >= 18 && S.debt === 0 && !S.usedFlags.paidDebt) {
+    wrap.classList.remove("hidden");
+  } else {
+    wrap.classList.add("hidden");
+  }
+}
+
+function takeDebt() {
+  if (S.debt > 0) { alert("У тебя уже есть долг!"); return; }
+  if (S.age < 18) { alert("Долг можно взять только с 18 лет!"); return; }
+  S.money += 40;
+  S.debt = 50;
+  S.mental = clamp(S.mental - 3);
+  addLog(`💳 Ты взял(а) в долг 40 монет. Теперь надо отдавать 50.`, "down");
+  updateDebtButton(); updateChildButton(); updateAdoptButton();
+  renderStats(); renderLog(); renderIdentity();
+}
+
+/* ============================================================
+   КНОПКА РЕБЁНКА (с КД)
+   ============================================================ */
+function updateChildButton() {
+  const wrap = document.getElementById("childBtnWrap");
+  const btn = document.getElementById("childBtn");
+  if (!wrap || !btn) return;
+  
+  const isLGBT = ORIENTATIONS[S.orientation].lgbt;
+  
+  if (isLGBT || S.isInfertile) {
+    wrap.classList.add("hidden");
+    return;
+  }
+  
+  if (S.alive && S.hasPartner && S.age >= 18 && S.children < 5) {
+    wrap.classList.remove("hidden");
+    if (S.childCooldown > 0) {
+      btn.disabled = true;
+      btn.textContent = `⏳ Подожди (${S.childCooldown} лет)`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = `👶 Предложить партнёру завести ребёнка`;
+    }
+  } else {
+    wrap.classList.add("hidden");
+  }
+}
+
+function suggestChild() {
+  if (!S.hasPartner) { alert("У тебя нет партнёра!"); return; }
+  if (S.children >= 5) { alert("У тебя уже 5 детей, больше не потянешь!"); return; }
+  if (S.childCooldown > 0) { alert(`Подожди ${S.childCooldown} лет!`); return; }
+  
+  const c = COUNTRIES[S.country];
+  const agreeChance = c.conservative ? 0.70 : 0.50;
+  
+  const agree = chance(agreeChance);
+  if (agree) {
+    const isTwins = chance(0.20);
+    const bornCount = isTwins ? 2 : 1;
+    S.children += bornCount;
+    S.hadChild = true;
+    S.childCooldown = 3;
+    
+    S.happiness = clamp(S.happiness + (isTwins ? 20 : 15));
+    S.money = Math.max(0, S.money - (isTwins ? 20 : 10));
+    S.health = clamp(S.health - (isTwins ? 6 : 4));
+    S.mental = clamp(S.mental - (isTwins ? 5 : 3));
+    S.socialOpinion = clamp(S.socialOpinion + 5);
+    
+    if (isTwins) {
+      S.usedFlags.hadTwins = true;
+      addLog(`👯 Партнёр согласился! У вас родилась ДВОЙНЯ! Теперь у тебя ${S.children} детей.`, "up");
+    } else {
+      addLog(`👶 Партнёр согласился! У вас родился ребёнок. Теперь у тебя ${S.children} детей.`, "up");
+    }
+  } else {
+    S.happiness = clamp(S.happiness - 5);
+    S.mental = clamp(S.mental - 3);
+    S.childCooldown = 1;
+    addLog(`💔 Партнёр отказался заводить ребёнка.`, "down");
+  }
+  
+  updateChildButton(); updateAdoptButton(); updateDebtButton();
+  renderStats(); renderLog(); renderIdentity();
+}
+
+/* ============================================================
+   КНОПКА УСЫНОВЛЕНИЯ (с КД)
+   ============================================================ */
+function updateAdoptButton() {
+  const wrap = document.getElementById("adoptBtnWrap");
+  const btn = document.getElementById("adoptBtn");
+  if (!wrap || !btn) return;
+  
+  const isLGBT = ORIENTATIONS[S.orientation].lgbt;
+  const c = COUNTRIES[S.country];
+  
+  if (isLGBT && c.conservative) {
+    wrap.classList.add("hidden");
+    return;
+  }
+  
+  const canAdoptBase = S.alive && S.age >= 20 && S.children < 5 && 
+                       (S.money >= 30) && (S.mental >= 40) && (S.socialOpinion >= 30);
+  
+  if (canAdoptBase && (!S.hasPartner || isLGBT || S.isInfertile)) {
+    wrap.classList.remove("hidden");
+    if (S.adoptCooldown > 0) {
+      btn.disabled = true;
+      btn.textContent = `⏳ Усыновление доступно через ${S.adoptCooldown} лет`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = `🏡 Усыновить ребёнка`;
+    }
+  } else {
+    wrap.classList.add("hidden");
+  }
+}
+
+function tryAdopt() {
+  const c = COUNTRIES[S.country];
+  const isLGBT = ORIENTATIONS[S.orientation].lgbt;
+  
+  if (S.adoptCooldown > 0) { alert(`Усыновление будет доступно через ${S.adoptCooldown} лет.`); return; }
+  if (S.money < 30) { alert("У тебя мало денег для усыновления (нужно 30)."); return; }
+  if (S.mental < 40) { alert("Твоя психика нестабильна. В усыновлении откажут."); return; }
+  if (S.socialOpinion < 30) { alert("У тебя плохая репутация. В усыновлении откажут."); return; }
+  if (isLGBT && c.conservative) { alert("В этой стране однополым парам/одиночкам не разрешают усыновление."); return; }
+  
+  if (chance(0.6)) {
+    S.children++;
+    S.adoptedChildren++;
+    S.hadChild = true;
+    S.usedFlags.adoptedChild = true;
+    S.money = Math.max(0, S.money - 20);
+    S.happiness = clamp(S.happiness + 15);
+    S.mental = clamp(S.mental + 5);
+    S.socialOpinion = clamp(S.socialOpinion + 3);
+    S.adoptCooldown = 4;
+    addLog(`🏡 Ты усыновил(а) ребёнка! Теперь у тебя ${S.children} детей.`, "up");
+  } else {
+    S.mental = clamp(S.mental - 10);
+    S.happiness = clamp(S.happiness - 5);
+    S.adoptCooldown = 2;
+    addLog(`💔 В усыновлении отказали. Бюрократия и подозрения.`, "down");
+  }
+  
+  updateChildButton(); updateAdoptButton(); updateDebtButton();
+  renderStats(); renderLog(); renderIdentity();
+}
+
+/* ============================================================
+   ПРОВЕРКА ЗДОРОВЬЯ, ДОЛГОВ И РИСКА ИЗЪЯТИЯ
+   ============================================================ */
+function checkHealthState() {
+  if (S.addiction > 30) {
+    const damage = Math.round(S.addiction / 20);
+    if (damage > 0 && chance(0.4)) {
+      S.health = clamp(S.health - damage);
+      addLog(`💊 Зависимость разрушает твоё здоровье (-${damage} ❤️)`, "down");
+    }
+  }
+  
+  if (S.debt > 0 && S.age >= 25 && chance(0.3)) {
+    S.debt = Math.round(S.debt * 1.1);
+    addLog(`💳 Долг вырос до ${S.debt}`, "down");
+  }
+  
+  if (S.childCooldown > 0) S.childCooldown--;
+  if (S.adoptCooldown > 0) S.adoptCooldown--;
+  
+  // Риск изъятия усыновлённого ребёнка
+  if (S.adoptedChildren > 0 && S.age > 20) {
+    const isBadEnv = S.money < 20 || S.mental < 40 || S.socialOpinion < 30;
+    if (isBadEnv && chance(0.3)) {
+      S.adoptedChildren--;
+      S.children--;
+      if (S.children === 0) S.hadChild = false;
+      S.happiness = clamp(S.happiness - 25);
+      S.mental = clamp(S.mental - 20);
+      addLog(`🚔 Органы опеки изъяли усыновлённого ребёнка из-за плохих условий.`, "down");
+    }
+  }
+}
+
+/* ============================================================
+   ПРОВЕРКА ПРЕДЕЛА ЖИЗНИ (СМЕРТЬ ОТ СТАРОСТИ)
+   ============================================================ */
+function checkLifeLimit() {
+  if (!S.alive) return false;
+  if (S.age < 50) return false;
+
+  // Лимит зависит от текущего здоровья
+  if (S.health >= 50) {
+    S.maxAgeLimit = 90;
+  } else if (S.health >= 20) {
+    S.maxAgeLimit = 75;
+  } else {
+    if (!S.maxAgeLimit || S.maxAgeLimit > 60) {
+      S.maxAgeLimit = rand(50, 60);
+    }
+  }
+
+  if (S.age >= S.maxAgeLimit) {
+    S.alive = false;
+    let reason;
+    if (S.health < 20) reason = `Здоровье было слишком слабым (${S.health}%). Организм не выдержал — смерть в ${S.age} лет.`;
+    else if (S.health < 50) reason = `Здоровье оставляло желать лучшего (${S.health}%). Старость взяла своё — смерть в ${S.age} лет.`;
+    else reason = `Ты прожил(а) долгую жизнь (${S.health}% здоровья) и умер(ла) от старости в ${S.age} лет.`;
+    endGame(reason);
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   АРМИЯ
+   ============================================================ */
+function getArmyStages() {
+  const c = COUNTRIES[S.country];
+  const minYears = c.armyService[0];
+  const maxYears = c.armyService[1];
+
+  const recruitStage = {
+    age: 18,
+    title: "Армия — призыв",
+    skip:()=> S.gender !== "male" || S.usedFlags.armyDecision,
+    text:()=> {
+      let txt = `Тебе 18. В ${S.country} молодых парней призывают в армию.`;
+      if (c.armyChance >= 0.9) txt += ` Служба здесь обязательна и жёсткая.`;
+      else if (c.armyChance >= 0.5) txt += ` Служба — обычное дело.`;
+      else if (c.armyChance >= 0.25) txt += ` Призыв есть, но многие избегают.`;
+      else txt += ` Служба необязательна или непопулярна.`;
+      txt += ` Срок: ${minYears}–${maxYears} лет.`;
+      return txt;
+    },
+    choices:()=>{
+      const opts = [
+        { text:`🪖 Пойти в армию (${minYears}–${maxYears} лет)`, effects:{health:+5, education:-3, happiness:-5, socialOpinion:+8, mental:-8}, log:"Ты пошёл в армию.",
+          flags:()=>{
+            S.usedFlags.armyDecision = true;
+            S.servedArmy = true;
+            S.armyYears = rand(minYears, maxYears);
+            S.armyStartAge = 18;
+            S.armyEndAge = 18 + S.armyYears;
+            S.armySubStage = 0;
+            addLog(`Ты отслужишь ${S.armyYears} лет. Вернёшься в ${S.armyEndAge}.`, "special");
+            STAGES_CACHE = getStages();
+          } },
+        { text:"🏃 Откосить от армии", effects:{happiness:+5, health:-3, socialOpinion:-10, mental:-5}, log:"Ты решил откосить.",
+          flags:()=>{
+            S.usedFlags.armyDecision = true;
+            S.usedFlags.dodgedArmy = true;
+            const risk = c.armyChance;
+            if (chance(risk * 0.5)) {
+              addLog("Тебя поймали и отправили служить принудительно!", "down");
+              S.servedArmy = true;
+              S.armyYears = rand(minYears, maxYears);
+              S.armyStartAge = 18;
+              S.armyEndAge = 18 + S.armyYears;
+              S.armySubStage = 0;
+              S.health = clamp(S.health - 10);
+              S.socialOpinion = clamp(S.socialOpinion - 15);
+              STAGES_CACHE = getStages();
+            } else {
+              addLog("Тебе удалось избежать призыва.", "up");
+            }
+          } },
+        { text:"📚 Пойти учиться (отсрочка)", effects:{education:+8, happiness:+3, socialOpinion:+2}, log:"Ты решил учиться — отсрочка от армии.",
+          flags:()=>{ S.usedFlags.armyDecision = true; } }
+      ];
+      return opts;
+    }
+  };
+
+  const armyInternalEvents = [
+    {
+      title: "Дедовщина",
+      text:()=> "Старшие призывники начинают тебя гонять. Дедовщина.",
+      choices:()=>[
+        { text:"Терпеть", effects:{health:-8, mental:-12, socialOpinion:+3}, log:"Ты терпел дедовщину.",
+          flags:()=>{ S.usedFlags.armyHazed = true; S.traumas.push("hazing"); } },
+        { text:"Дать сдачи", effects:{health:-12, mental:+5, socialOpinion:+6}, log:"Ты дал сдачи — стали уважать.",
+          flags:()=>{ S.usedFlags.armyBully = true; } },
+        { text:"Сдать старших офицеру", effects:{health:-5, mental:-5, socialOpinion:-8}, log:"Офицер разобрался, но тебя стали избегать.",
+          flags:()=>{ S.usedFlags.armyHazed = true; } }
+      ]
+    },
+    {
+      title: "Служба",
+      text:()=> "Будни службы. Тяжёлые тренировки, наряды, сон по 4 часа.",
+      choices:()=>[
+        { text:"Усердно служить", effects:{health:-5, mental:+3, socialOpinion:+8}, log:"Ты стал образцовым солдатом.",
+          flags:()=>{ if (chance(0.3)) { S.usedFlags.armyHero = true; addLog("Тебя наградили за службу!", "up"); S.socialOpinion = clamp(S.socialOpinion + 10); } } },
+        { text:"Филонить", effects:{health:+3, mental:-3, socialOpinion:-5}, log:"Ты филонил, как мог." },
+        { text:"Попросить перевод", effects:{health:-3, education:+4, mental:-2}, log:"Тебя перевели в штаб." }
+      ]
+    },
+    {
+      title: "Побег",
+      text:()=> "Служба невыносима. Ты думаешь о побеге.",
+      choices:()=>[
+        { text:"Сбежать", effects:{health:-15, mental:-10, socialOpinion:-20}, log:"Ты сбежал, но тебя поймали.",
+          flags:()=>{ if (chance(0.3)) { S.usedFlags.armyEscaped = true; addLog("Тебе удалось сбежать! Тебя ищут.", "down"); S.socialOpinion = clamp(S.socialOpinion - 15); } else { addLog("Тебя поймали и отправили на гауптвахту.", "down"); S.health = clamp(S.health - 10); S.mental = clamp(S.mental - 10); } } },
+        { text:"Дослужить", effects:{mental:-3, socialOpinion:+3}, log:"Ты решил дослужить." }
+      ]
+    }
+  ];
+
+  const armyStages = [recruitStage];
+
+  for (let i = 0; i < 6; i++) {
+    const internal = armyInternalEvents[i % armyInternalEvents.length];
+    armyStages.push({
+      age: 18,
+      title: `Армия — ${internal.title}`,
+      skip:()=> {
+        if (!S.servedArmy) return true;
+        if (!S.usedFlags.armyDecision) return true;
+        if (S.armySubStage !== i) return true;
+        if (S.armySubStage >= 6) return true;
+        return false;
+      },
+      text:()=> internal.text(),
+      choices:()=> internal.choices()
+    });
+  }
+
+  return armyStages;
+}
+
+/* ============================================================
+   ВЫБОР ПРОФЕССИИ
+   ============================================================ */
+function getProfessionChoices() {
+  const c = COUNTRIES[S.country];
+  const diff = c.educationDifficulty;
+  const base = [
+    { text:"🏥 Стать врачом", effects:{education:+10, money:-5, happiness:+3, socialOpinion:+8, health:-2}, log:"Ты выбрал(а) профессию врача.",
+      flags:()=>{
+        S.profession = "doctor";
+        S.usedFlags.profChoiceMade = true;
+        if (diff >= 0.7) {
+          const failChance = (diff - 0.7) * 2;
+          if (chance(failChance)) {
+            addLog(`В ${S.country} получить медицинское образование крайне сложно. Тебя отчислили.`, "down");
+            S.profession = "no_study";
+            S.education = clamp(S.education - 10);
+            S.happiness = clamp(S.happiness - 10);
+          }
+        }
+      } },
+    { text:"👮 Пойти в полицию", effects:{money:+5, health:+5, socialOpinion:+5, happiness:-2}, log:"Ты стал(а) полицейским.",
+      flags:()=>{ S.profession = "police"; S.usedFlags.profChoiceMade = true; } },
+    { text:"⚖️ Стать юристом", effects:{education:+12, money:-3, socialOpinion:+6, happiness:+2}, log:"Ты выбрал(а) профессию юриста.",
+      flags:()=>{
+        S.profession = "lawyer";
+        S.usedFlags.profChoiceMade = true;
+        if (diff >= 0.7) {
+          const failChance = (diff - 0.7) * 2;
+          if (chance(failChance)) {
+            addLog(`В ${S.country} юридическое образование слишком дорогое. Тебя не приняли.`, "down");
+            S.profession = "no_study";
+            S.education = clamp(S.education - 8);
+            S.happiness = clamp(S.happiness - 8);
+          }
+        }
+      } },
+    { text:"📊 Стать экономистом", effects:{money:+8, education:+6, socialOpinion:+4}, log:"Ты стал(а) экономистом.",
+      flags:()=>{
+        S.profession = "economist";
+        S.usedFlags.profChoiceMade = true;
+        if (diff >= 0.7) {
+          const failChance = (diff - 0.7) * 2;
+          if (chance(failChance)) {
+            addLog(`В ${S.country} экономическое образование требует связей. Тебя не взяли.`, "down");
+            S.profession = "no_study";
+            S.education = clamp(S.education - 6);
+          }
+        }
+      } }
+  ];
+  
+  if (S.education >= 60) {
+    base.push({ text:"📚 Стать учителем", effects:{money:+2, education:+5, happiness:+5, socialOpinion:+7, health:-1}, log:"Ты стал(а) учителем.",
+      flags:()=>{ S.profession = "teacher"; S.usedFlags.profChoiceMade = true; } });
+  }
+  
+  if (S.languages >= 2) {
+    base.push({ text:"📖 Стать репетитором", effects:{money:+6, education:+3, happiness:+4, socialOpinion:+3}, log:"Ты стал(а) репетитором.",
+      flags:()=>{ S.profession = "tutor"; S.usedFlags.profChoiceMade = true; } });
+  }
+  
+  base.push({ text:"🚫 Не учиться и не работать", effects:{happiness:+5, money:-5, socialOpinion:-10, education:-5}, log:"Ты решил(а) не учиться и не работать.",
+    flags:()=>{ S.profession = "no_study"; S.usedFlags.profChoiceMade = true; } });
+  
+  return base;
+}
+
+function makeProfessionStage(isAfterArmy) {
+  return {
+    age: 18,
+    title: isAfterArmy ? "Выбор профессии после армии" : "Выбор профессии",
+    _afterArmy: isAfterArmy,
+    skip:()=> {
+      if (!S.usedFlags.armyDecision) return true;
+      if (S.profession) return true;
+      if (S.usedFlags.profChoiceMade) return true;
+      if (isAfterArmy) {
+        return !S.servedArmy;
+      } else {
+        return S.servedArmy;
+      }
+    },
+    text:()=> {
+      let extra = "";
+      const diff = COUNTRIES[S.country].educationDifficulty;
+      if (S.education >= 60) extra += "\n📚 У тебя достаточно образования, чтобы стать учителем.";
+      if (S.languages >= 2) extra += "\n🌍 Ты знаешь несколько языков — можешь стать репетитором.";
+      if (diff >= 0.7) extra += "\n⚠️ В этой стране получить сложную профессию (врач/юрист/экономист) очень трудно.";
+      else if (diff <= 0.3) extra += "\n✅ В этой стране образование доступное — сложные профессии вполне реальны.";
+      const ageText = isAfterArmy ? `Тебе ${S.armyEndAge}. Ты вернулся из армии (служил ${S.armyYears} лет). Пора выбрать профессию.` : `Тебе 18. Пора выбрать профессию.`;
+      return `${ageText} Это решение определит твою жизнь.${extra}`;
+    },
+    choices:()=> getProfessionChoices()
+  };
+}
+
+/* ============================================================
+   ЭТАПЫ (С ДОБАВЛЕННЫМИ ВОЗРАСТАМИ 78, 82, 86, 89)
+   ============================================================ */
+function getStages() {
+  const c = COUNTRIES[S.country];
+  const isGirl = S.gender === "female";
+  const isBoy = S.gender === "male";
+  const isLGBT = ORIENTATIONS[S.orientation].lgbt;
+  const iranLike = ["Иран","Индия","Азербайджан","Египет","Северная Корея","Афганистан","Пакистан","Алжир","Сомали"].includes(S.country);
+
+  const stages = [];
+
+  stages.push(
+    { age:3, title:"Детство", text:()=> `${S.name}, тебе 3 года.`,
+      choices:()=>[
+        { text:"Играть во дворе", effects:{happiness:+12,health:+3,socialOpinion:+3,mental:+3}, log:"Ты играл(а).", flags:()=>{ S.socialScore+=2; } },
+        { text:"Развивающие передачи", effects:{education:+9,happiness:+2,socialOpinion:-1,mental:-2}, log:"Ты впитывал(а) знания.", flags:()=>{ S.socialScore-=1; } },
+        { text:"Помогать родителям", effects:{money:+3,happiness:-3,health:+2,socialOpinion:+3,mental:+1}, log:"Ты помогал(а)." }
+      ] },
+    { age:5, title:"Детский сад", text:()=> `Тебе 5 лет. Детский сад.`,
+      choices:()=>[
+        { text:"Дружить со всеми", effects:{happiness:+8,socialOpinion:+5,mental:+4}, log:"Ты был(а) душой компании.", flags:()=>{ S.socialScore+=1; } },
+        { text:"Играть одному", effects:{education:+3,mental:+2,happiness:-2}, log:"Ты играл(а) в одиночестве." },
+        { text:"Драться с обидчиками", effects:{health:-3,socialOpinion:-3,happiness:+3}, log:"Ты дал(а) сдачи." }
+      ] },
+    { age:6, title:"Два языка", skip:()=> !S.isMixed || S.usedFlags.secondLanguageChecked,
+      text:()=> {
+        const otherLang = S.motherCountry !== S.country ? S.motherCountry : S.fatherCountry;
+        return `Твои родители из разных стран (${S.country} и ${otherLang}). В доме звучат два языка. Родственники советуют учить язык второго родителя.`;
+      },
+      choices:()=>[
+        { text:"Учить язык с детства", effects:{education:+8,languages:+1,happiness:+4,mental:+3}, log:"Ты выучил(а) второй язык с детства!",
+          flags:()=>{ S.usedFlags.secondLanguageChecked = true; S.usedFlags.bilingual = true; } },
+        { text:"Говорить только на языке страны", effects:{happiness:-4,socialOpinion:+2,mental:-2}, log:"Ты отказался(ась) от второго языка.",
+          flags:()=>{ S.usedFlags.secondLanguageChecked = true; } },
+        { text:"Учить оба, но плохо", effects:{education:+3,languages:+1,happiness:+1}, log:"Ты знаешь оба языка, но поверхностно.",
+          flags:()=>{ S.usedFlags.secondLanguageChecked = true; } }
+      ] },
+    { age:7, title:"Школа", text:()=> isGirl && iranLike ? `Тебе 7 лет. В ${S.country} девочек в школу отправляют неохотно.` : `Тебе 7 лет. Пора в школу.`,
+      choices:()=>{
+        if (isGirl && iranLike) return [
+          { text:"Уговорить отправить в школу", effects:{education:+15,happiness:+5,socialOpinion:-6,mental:-5}, log:"Ты настояла на учёбе.",
+            flags:()=>{ 
+              S.socialScore+=1;
+              if (chance(0.5)) {
+                S.usedFlags.schoolBully = true;
+                addLog("Одноклассники начали травить тебя за то, что ты девочка в школе. Это было жестоко.", "down");
+                S.traumas.push("school_bully");
+                S.mental = clamp(S.mental - 15);
+                S.happiness = clamp(S.happiness - 10);
+              }
+            } },
+          { text:"Остаться дома", effects:{education:-12,happiness:-8,socialOpinion:+4,mental:-6}, log:"Ты осталась дома." },
+          { text:"Тайком учиться читать", effects:{education:+8,happiness:+2,health:-2,mental:-3}, log:"Ты училась тайком." }
+        ];
+        return [
+          { text:"Усердно учиться", effects:{education:+15,happiness:-4,socialOpinion:+3,mental:-3}, log:"Ты отличник(ца).", flags:()=>{ S.socialScore-=1; } },
+          { text:"Много гулять", effects:{education:+5,happiness:+10,socialOpinion:+1,mental:+3}, log:"Ты наслаждался(ась).", flags:()=>{ S.socialScore+=2; } },
+          { text:"Заниматься спортом", effects:{health:+12,happiness:+5,socialOpinion:+3,mental:+2}, log:"Спорт закалил.", flags:()=>{ S.socialScore+=1; } }
+        ];
+      } },
+    { age:9, title:"Друзья", text:()=> "Тебе 9. У тебя появляются настоящие друзья.",
+      choices:()=>[
+        { text:"Держаться вместе", effects:{happiness:+8,socialOpinion:+5,mental:+4}, log:"Вы стали лучшими друзьями.", flags:()=>{ S.socialScore+=1; } },
+        { text:"Гулять одному", effects:{education:+3,happiness:-3,mental:+2}, log:"Ты предпочитал(а) одиночество." },
+        { text:"Влипнуть в плохую компанию", effects:{happiness:+5,socialOpinion:-6,health:-3}, log:"Ты связался(ась) с плохими ребятами." }
+      ] },
+    { age:10, title:"Родина родителей", skip:()=> !S.isMixed || S.usedFlags.tripChecked,
+      text:()=> {
+        const otherCountry = S.motherCountry !== S.country ? S.motherCountry : S.fatherCountry;
+        return `Тебе 10. Родители предлагают поехать на лето на родину второго родителя — в ${COUNTRIES[otherCountry].flag} ${otherCountry}.`;
+      },
+      choices:()=>[
+        { text:`Поехать в ${COUNTRIES[S.motherCountry !== S.country ? S.motherCountry : S.fatherCountry].flag} ${S.motherCountry !== S.country ? S.motherCountry : S.fatherCountry}`, effects:{education:+6,languages:+1,happiness:+8,mental:+4,socialOpinion:-2}, log:"Ты увидел(а) другую культуру и выучил(а) язык.",
+          flags:()=>{ S.usedFlags.tripChecked = true; S.usedFlags.visitedOtherCountry = true; if (chance(0.6)) S.languages = (S.languages||1) + 1; } },
+        { text:"Остаться дома", effects:{happiness:+2,socialOpinion:+2}, log:"Ты остался(ась) дома.",
+          flags:()=>{ S.usedFlags.tripChecked = true; } }
+      ] },
+    { age:10, title:"Травля из-за внешности", skip:()=> {
+        if (S.beauty >= 35 || S.usedFlags.bullyChecked) return true;
+        S.usedFlags.bullyChecked = true;
+        return !chance(0.7);
+      },
+      text:()=> "Тебе 10. Дети начали травить тебя из-за твоей внешности. Насмешки каждый день.",
+      choices:()=>[
+        { text:"Дать отпор", effects:{health:-5,happiness:-8,socialOpinion:-5,mental:-12}, log:"Ты дал(а) отпор, но получил(а) травму.",
+          flags:()=>{ S.traumas.push("bullied"); } },
+        { text:"Рассказать родителям", effects:{happiness:-3,mental:-5,socialOpinion:-1}, log:"Родители вмешались, но осадок остался.",
+          flags:()=>{ S.traumas.push("bullied"); } },
+        { text:"Плакать в одиночестве", effects:{happiness:-15,mental:-20}, log:"Ты плакал(а) один(а). Это оставило глубокую рану.",
+          flags:()=>{ S.traumas.push("bullied"); } }
+      ] },
+    { age:11, title:"Школьные годы", text:()=> "Тебе 11. Школьные годы идут.",
+      choices:()=>[
+        { text:"Отличник", effects:{education:+10,socialOpinion:+2,mental:-2}, log:"Ты стал(а) отличником." },
+        { text:"Хулиган", effects:{education:-5,happiness:+6,socialOpinion:-5,health:+3}, log:"Ты стал(а) хулиганом." },
+        { text:"Среднячок", effects:{education:+4,happiness:+3,mental:+2}, log:"Ты был(а) как все." }
+      ] },
+    { age:12, title:"Первые увлечения", text:()=> `Тебе 12. У тебя появляются увлечения.`,
+      choices:()=>[
+        { text:"Спорт", effects:{health:+10,happiness:+5,socialOpinion:+4,mental:+2}, log:"Ты полюбил(а) спорт.", flags:()=>{ S.socialScore+=1; } },
+        { text:"Книги", effects:{education:+10,happiness:+3,socialOpinion:-1,mental:+3}, log:"Ты полюбил(а) читать." },
+        { text:"Компьютер", effects:{education:+6,happiness:+6,health:-3,mental:+2}, log:"Ты увлёкся(ась) компьютером." }
+      ] },
+    { age:13, title:"Сверстники", skip:()=> { if (!isLGBT) return true; return !chance(S.gender==="male"?0.20:0.15); },
+      text:()=> "Тебе 13. Одноклассники прознали о твоей ориентации.",
+      choices:()=>[
+        { text:"Дать отпор", effects:{health:-10,happiness:-5,socialOpinion:-8,mental:-15}, log:"Ты дал(а) отпор.", flags:()=>{ S.traumas.push("beaten"); S.hasBeenBeaten=true; S.socialScore+=1; } },
+        { text:"Убежать", effects:{health:-5,happiness:-12,socialOpinion:-5,mental:-20}, log:"Ты убежал(а).", flags:()=>{ S.traumas.push("beaten"); S.hasBeenBeaten=true; S.socialScore-=1; } },
+        { text:"Пожаловаться", effects:{happiness:-3,education:+2,socialOpinion:-3,mental:-8}, log:"Учителя вмешались.", flags:()=>{ S.traumas.push("beaten"); S.hasBeenBeaten=true; } }
+      ] },
+    { age:14, title:"Осознание себя",
+      text:()=> {
+        if (!isLGBT) return `Тебе 14. Ты замечаешь, что тебе нравятся ровесники противоположного пола.`;
+        return `Тебе 14. Ты понимаешь: тебя привлекают люди твоего пола (${ORIENTATIONS[S.orientation].name}).`;
+      },
+      choices:()=>{
+        if (!isLGBT) return [
+          { text:"Жить обычной жизнью", effects:{happiness:+7,education:+2,socialOpinion:+2,mental:+3}, log:"Ты рос(ла) как все.", flags:()=>{ S.socialScore+=2; } },
+          { text:"Сосредоточиться на учёбе", effects:{education:+12,happiness:-3,socialOpinion:+3,mental:-2}, log:"Ты выбрал(а) учёбу.", flags:()=>{ S.socialScore-=2; } }
+        ];
+        const safe = c.acceptance >= 0.5;
+        if (safe) S.familyAccepted = chance(0.5);
+        else S.familyAccepted = chance(0.3);
+        S.familyReacted = true;
+        if (!S.familyAccepted) {
+          S.traumas.push("family");
+          S.happiness = clamp(S.happiness - 15);
+          S.mental = clamp(S.mental - 10);
+        }
+        return [
+          { text:"Принять себя и жить открыто", effects:{happiness: safe?+15:-10, health: safe?+5:-8, socialOpinion: safe?+4:-20, mental: safe?+8:-25}, log:"Ты принял(а) себя.",
+            flags:()=>{ S.selfAccepted=true; if(safe) S.cameOut=true; S.socialScore+=2; } },
+          { text:"Принять себя, но скрывать", effects:{happiness:-5, education:+3, socialOpinion:+1, mental:-8}, log:"Ты принял(а) себя, но молчишь.",
+            flags:()=>{ S.selfAccepted=true; S.socialScore-=1; } },
+          { text:"Подавить в себе эти чувства", effects:{happiness:-20, health:-5, socialOpinion:+4, mental:-25}, log:"Ты пытался(ась) стать «как все».",
+            flags:()=>{ S.selfAccepted=false; S.traumas.push("suppressed"); S.socialScore-=2; } }
+        ];
+      } },
+    { age:15, title:"Первая любовь",
+      text:()=> (isLGBT && !S.selfAccepted) ? "Тебе 15. Ты подавляешь влечение." : "Тебе 15. В твоей жизни появился человек.",
+      choices:()=>{
+        if (isLGBT && !S.selfAccepted) return [
+          { text:"Попытаться исправиться", effects:{happiness:-8,education:-2,socialOpinion:+3,mental:-6}, log:"Ты попробовал(а) «исправиться»." },
+          { text:"Остаться одиноким(ой)", effects:{happiness:-12,education:+4,socialOpinion:-2,mental:-15}, log:"Ты закрылся(ась).", flags:()=>{ S.socialScore-=2; } }
+        ];
+        return [
+          { text:"Признаться в чувствах", effects:{happiness:+15, education:-3, socialOpinion:+3, mental:+10}, log:"Ты открыл(а) сердце.", flags:()=>{ S.foundLove=true; S.hasPartner=true; S.partnerTrait = generatePartner().trait; applyPartnerTrait(); } },
+          { text:"Сосредоточиться на учёбе", effects:{education:+12,happiness:-4,socialOpinion:+2,mental:-2}, log:"Ты выбрал(а) учёбу." },
+          { text:"Дружить", effects:{happiness:+7,education:+3,socialOpinion:+2,mental:+3}, log:"Вы остались друзьями.", flags:()=>{ S.socialScore+=1; } }
+        ];
+      } },
+    { age:16, title:"Вредные привычки", skip:()=> {
+        if (S.usedFlags.badHabitsChecked) return true;
+        S.usedFlags.badHabitsChecked = true;
+        return false;
+      },
+      text:()=> "Тебе 16. Друзья предлагают попробовать сигареты и алкоголь.",
+      choices:()=>[
+        { text:"Попробовать всё", effects:{happiness:+10,health:-8,mental:+3}, log:"Ты попробовал(а) сигареты и алкоголь. Понравилось...",
+          flags:()=>{ S.addiction = clamp(S.addiction + 20); } },
+        { text:"Только алкоголь по праздникам", effects:{happiness:+5,health:-3}, log:"Ты иногда выпиваешь.",
+          flags:()=>{ S.addiction = clamp(S.addiction + 8); } },
+        { text:"Отказаться", effects:{happiness:-2,socialOpinion:-2}, log:"Ты отказался(ась). Друзья посмеялись.",
+          flags:()=>{ S.usedFlags.stayedClean = true; } }
+      ] },
+    { age:17, title:"Последний школьный год", text:()=> "Тебе 17. Последний год в школе.",
+      choices:()=>[
+        { text:"Готовиться к экзаменам", effects:{education:+15,happiness:-5,mental:-3,socialOpinion:+3}, log:"Ты готовился к экзаменам." },
+        { text:"Гулять напоследок", effects:{happiness:+12,socialOpinion:+3,education:-3}, log:"Ты наслаждался свободой." },
+        { text:"Работать", effects:{money:+8,health:-3,education:-2}, log:"Ты подрабатывал(а)." }
+      ] },
+    { age:18, title:"Выбор родины", skip:()=> !S.isMixed || S.usedFlags.movedToParentChecked,
+      text:()=> {
+        const otherCountry = S.motherCountry !== S.country ? S.motherCountry : S.fatherCountry;
+        const isMother = S.motherCountry !== S.country;
+        const parentName = isMother ? "матери" : "отца";
+        return `Тебе 18. Родители из разных стран. Ты можешь остаться в ${S.country} или переехать на родину ${parentName} (${COUNTRIES[otherCountry].flag} ${otherCountry}).`;
+      },
+      choices:()=>{
+        const otherCountry = S.motherCountry !== S.country ? S.motherCountry : S.fatherCountry;
+        const isMother = S.motherCountry !== S.country;
+        return [
+          { text:`Остаться в ${S.country}`, effects:{happiness:+3,socialOpinion:+3,mental:+2}, log:`Ты остался(ась) в ${S.country}.`,
+            flags:()=>{ S.usedFlags.movedToParentChecked = true; } },
+          { text:`Переехать в ${COUNTRIES[otherCountry].flag} ${otherCountry}`, effects:{money:rand(-8,12),happiness:rand(-6,10),education:+4,health:-2,languages:+1,socialOpinion:-6,mental:rand(-4,6)}, log:`Ты переехал(а) в ${otherCountry}.`,
+            flags:()=>{ 
+              S.usedFlags.movedToParentChecked = true;
+              S.emigrated = true;
+              S.country = otherCountry;
+              S.flag = COUNTRIES[otherCountry].flag;
+              if (isMother) S.usedFlags.movedToMotherland = true;
+              else S.usedFlags.movedToFatherland = true;
+              S.socialScore += 1;
+            } }
+        ];
+      } }
+  );
+
+  const armyStages = getArmyStages();
+  armyStages.forEach(st => stages.push(st));
+
+  stages.push(makeProfessionStage(false));
+  stages.push(makeProfessionStage(true));
+
+  stages.push(
+    { age:19, title:"Кем ты стал(а)?", skip:()=> S.profession !== "no_study",
+      text:()=> `Тебе ${S.age}. Ты не учился и не работал. Пора хоть как-то зарабатывать на жизнь.`,
+      choices:()=>{
+        const opts = [
+          { text:"🧹 Пойти дворником", effects:{money:+5, happiness:-8, health:-3, socialOpinion:-5}, log:"Ты стал(а) дворником.",
+            flags:()=>{ S.profession = "janitor"; } },
+          { text:"🧽 Пойти уборщиком", effects:{money:+7, happiness:-10, health:-2, socialOpinion:-3}, log:"Ты стал(а) уборщиком.",
+            flags:()=>{ S.profession = "cleaner"; } },
+          { text:"🏚️ Стать бездомным", effects:{money:-3, happiness:-25, health:-10, socialOpinion:-15, mental:-15}, log:"Ты оказался на улице.",
+            flags:()=>{ S.profession = "homeless"; S.traumas.push("homeless"); } }
+        ];
+        
+        if (isGirl) {
+          opts.push({ text:"💃 Работа 18+", effects:{money:+25, happiness:-20, health:-10, socialOpinion:-20, mental:-20}, log:"Ты пошла на работу 18+.",
+            flags:()=>{ S.profession = "prostitution"; S.traumas.push("prostitution"); } });
+        } else {
+          opts.push({ text:"📦 Пойти грузчиком", effects:{money:+10, happiness:-8, health:-8, socialOpinion:-3}, log:"Ты стал(а) грузчиком.",
+            flags:()=>{ S.profession = "loader"; } });
+        }
+        
+        return opts;
+      } },
+    { age:19, title:"Искушение", skip:()=> {
+        if (!S.hasPartner || S.usedFlags.cheatChecked) return true;
+        S.usedFlags.cheatChecked = true;
+        return !chance(0.4);
+      },
+      text:()=> "Тебе 19. У тебя есть партнёр, но на горизонте появился кто-то очень привлекательный.",
+      choices:()=>[
+        { text:"Изменить партнёру", effects:{happiness:+8,mental:-5,socialOpinion:-3}, log:"Ты изменил(а).",
+          flags:()=>{ S.usedFlags.cheated = true; if (chance(0.15)) { S.hasSTD = true; addLog("Ты подхватил(а) ЗППП.", "down"); } } },
+        { text:"Остаться верным(ой)", effects:{happiness:+3,socialOpinion:+2,mental:+3}, log:"Ты остался(ась) верным(ой)." }
+      ] },
+    { age:20, title:"Начало взрослой жизни", text:()=> "Тебе 20. Ты вступаешь во взрослую жизнь.",
+      choices:()=>[
+        { text:"Работать", effects:{money:+12,health:-4,happiness:+3,education:+2}, log:"Ты начал(а) работать." },
+        { text:"Учиться дальше", effects:{education:+12,money:-6,happiness:+2}, log:"Ты продолжаешь учиться." },
+        { text:"Искать себя", effects:{happiness:+6,mental:+4,education:+3,money:-3}, log:"Ты в поиске себя." }
+      ] },
+    { age:21, title:"Психологическая помощь", skip:()=> {
+        if (S.usedFlags.therapyChecked) return true;
+        if (S.mental > 40) return true;
+        S.usedFlags.therapyChecked = true;
+        return !chance(0.7);
+      },
+      text:()=> `Тебе 21. Психологическая помощь в ${S.country}.`,
+      choices:()=>{
+        const q = c.therapyQuality;
+        const heal = Math.round(30 * q);
+        if (q >= 0.8) return [
+          { text:"Обратиться", effects:{money:-5,mental:+heal,happiness:+5}, log:"Помощь помогла." },
+          { text:"Сам(а)", effects:{mental:-5}, log:"Ты справлялся сам(а)." }
+        ];
+        if (q >= 0.4) return [
+          { text:"Обратиться", effects:{money:-5,mental:+heal,happiness:+2}, log:"Помощь была не идеальной." },
+          { text:"Сам(а)", effects:{mental:-5}, log:"Ты справлялся сам(а)." }
+        ];
+        return [
+          { text:"Найти психолога", effects:{money:-5,mental:+Math.max(1,heal),happiness:-2}, log:"Некомпетентный врач." },
+          { text:"Сам(а)", effects:{mental:-5}, log:"Ты справлялся сам(а)." }
+        ];
+      } },
+    { age:21, title:"Первая квартира", text:()=> "Тебе 21. Пора съезжать от родителей.",
+      choices:()=>[
+        { text:"Снять квартиру", effects:{money:-15,happiness:+10,mental:+5}, log:"Ты снял(а) квартиру." },
+        { text:"Жить с родителями", effects:{money:+5,happiness:-5,mental:-3}, log:"Ты остался(ась) с родителями." },
+        { text:"Купить жильё в кредит", effects:{money:-30,debt:+30,happiness:+12,mental:+3}, log:"Ты взял(а) ипотеку.",
+          flags:()=>{ S.debt += 30; } }
+      ] },
+    { age:22, title:"Первый опыт", skip:()=> {
+        if (!S.profession || S.profession === "no_study" || S.usedFlags.profDev22) return true;
+        S.usedFlags.profDev22 = true;
+        return false;
+      },
+      text:()=> {
+        switch(S.profession) {
+          case "doctor": return "Ты врач-интерн. В палату привезли тяжёлого пациента, дежурный врач уехал.";
+          case "police": return "Патрулируя улицу, ты видишь, как грабят магазин.";
+          case "lawyer": return "Первое дело в суде — защита обвиняемого в краже.";
+          case "economist": return "Ты младший аналитик. Начальник предлагает подделать отчёт ради бонуса.";
+          case "teacher": return "Первый класс. Ученики устроили бунт и не слушаются.";
+          case "tutor": return "Первый ученик — капризный ребёнок богатых родителей.";
+          case "janitor": return "Ты мёте улицу, а прохожие бросают мусор прямо перед тобой.";
+          case "cleaner": return "Ты убираешь офис. Начальник придирается к каждой пылинке.";
+          case "homeless": return "Ты живёшь на улице. Холод, голод и презрение прохожих.";
+          case "prostitution": return "Ты работаешь на улице. Клиент предлагает опасную сделку.";
+          case "loader": return "Ты разгружаешь вагоны. Спина отваливается.";
+          default: return "Рабочие будни.";
+        }
+      },
+      choices:()=>{
+        const successChance = c.educationDifficulty <= 0.3 ? 0.85 : (c.educationDifficulty <= 0.6 ? 0.65 : 0.45);
+        const opts = [];
+        
+        switch(S.profession) {
+          case "doctor":
+            opts.push(
+              { text:"Провести операцию самому", effects:{money:+20, socialOpinion:+10, health:-5, mental:-5}, log:"Ты спас(ла) пациента!",
+                flags:()=>{ if (chance(successChance)) { S.careerLevel += 1; S.happiness += 8; S.socialOpinion += 5; } else { addLog("Пациент умер. Ты не справился.", "down"); S.socialOpinion = clamp(S.socialOpinion - 20); S.mental = clamp(S.mental - 20); S.traumas.push("patient_death"); } } },
+              { text:"Вызвать опытного врача", effects:{money:+3, education:+8}, log:"Ты учился у старших." }
+            );
+            break;
+          case "police":
+            opts.push(
+              { text:"Броситься в погоню", effects:{health:-10, socialOpinion:+12, money:+5}, log:"Ты поймал преступника!",
+                flags:()=>{ if (chance(successChance)) { S.careerLevel += 1; S.happiness += 5; S.money += 10; } else { addLog("Преступник ранил тебя.", "down"); S.health = clamp(S.health - 15); } } },
+              { text:"Вызвать подкрепление", effects:{money:+2, socialOpinion:+3}, log:"Ты действовал осторожно." }
+            );
+            break;
+          case "lawyer":
+            opts.push(
+              { text:"Защищать в суде", effects:{money:+25, socialOpinion:+12, mental:-3}, log:"Ты выиграл(а) дело!",
+                flags:()=>{ if (chance(successChance)) { S.careerLevel += 1; S.happiness += 5; } else { addLog("Дело проиграно. Репутация пострадала.", "down"); S.socialOpinion = clamp(S.socialOpinion - 12); } } },
+              { text:"Посоветовать признать вину", effects:{money:+5, socialOpinion:-3}, log:"Ты выбрал(а) простой путь." }
+            );
+            break;
+          case "economist":
+            opts.push(
+              { text:"Подделать отчёт", effects:{money:+20, mental:-10, socialOpinion:-5}, log:"Ты подделал(а) отчёт.",
+                flags:()=>{ if (chance(0.3)) { addLog("Обман раскрыли! Тебя уволили.", "down"); S.socialOpinion = clamp(S.socialOpinion - 20); S.money = Math.max(0, S.money - 10); S.happiness = clamp(S.happiness - 10); } else { S.careerLevel += 1; } } },
+              { text:"Отказаться и работать честно", effects:{money:+8, education:+5, socialOpinion:+5}, log:"Ты отказался(ась) врать." }
+            );
+            break;
+          case "teacher":
+            opts.push(
+              { text:"Строго наказать учеников", effects:{money:+2, socialOpinion:-6, happiness:-3}, log:"Дисциплина налажена, но дети тебя боятся." },
+              { text:"Найти подход к ученикам", effects:{money:+5, socialOpinion:+10, happiness:+6, education:+3}, log:"Дети полюбили тебя!",
+                flags:()=>{ if (chance(successChance)) { S.careerLevel += 1; } } }
+            );
+            break;
+          case "tutor":
+            opts.push(
+              { text:"Заниматься усердно", effects:{money:+12, education:+5, happiness:+3}, log:"Ученик сдал экзамен!" },
+              { text:"Отказаться от заказа", effects:{money:+2, education:+2}, log:"Ты выбрал(а) спокойствие." }
+            );
+            break;
+          case "janitor":
+            opts.push(
+              { text:"Молча продолжать работу", effects:{money:+5, health:-3, happiness:-3, socialOpinion:-2}, log:"Ты молча работал(а)." },
+              { text:"Ответить грубиянам", effects:{money:+2, happiness:+3, socialOpinion:-5, health:-2}, log:"Ты ответил(а) грубостью на грубость." }
+            );
+            break;
+          case "cleaner":
+            opts.push(
+              { text:"Стараться изо всех сил", effects:{money:+8, health:-5, happiness:-2}, log:"Ты старался(ась), но устал(а)." },
+              { text:"Работать спустя рукава", effects:{money:+3, happiness:+2, socialOpinion:-3}, log:"Начальник заметил." }
+            );
+            break;
+          case "homeless":
+            opts.push(
+              { text:"Попросить милостыню", effects:{money:+3, happiness:-5, health:-3}, log:"Ты просил(а) милостыню." },
+              { text:"Найти приют", effects:{money:-2, happiness:+5, health:+3, socialOpinion:+2}, log:"Ты нашёл(ла) приют." }
+            );
+            break;
+          case "prostitution":
+            opts.push(
+              { text:"Принять опасного клиента", effects:{money:+30, health:-15, happiness:-15, mental:-20}, log:"Ты приняла опасного клиента.",
+                flags:()=>{ if (chance(0.3)) { addLog("Клиент оказался маньяком... Ты чудом спаслась.", "down"); S.health = clamp(S.health - 20); S.traumas.push("attack"); } } },
+              { text:"Отказать", effects:{money:-3, happiness:+3, socialOpinion:+1}, log:"Ты отказала клиенту." }
+            );
+            break;
+          case "loader":
+            opts.push(
+              { text:"Работать в две смены", effects:{money:+15, health:-12, happiness:-3}, log:"Ты вкалывал(а) без отдыха." },
+              { text:"Работать по норме", effects:{money:+5, health:-3, happiness:-1}, log:"Ты работал(а) обычно." }
+            );
+            break;
+          default:
+            opts.push(
+              { text:"Работать усердно", effects:{money:+5, health:-3, happiness:-2}, log:"Ты много работал(а)." },
+              { text:"Искать другую работу", effects:{money:-2, mental:+2}, log:"Ты в поиске." }
+            );
+        }
+        return opts;
+      } },
+    { age:22, title:"Подозрение", skip:()=> {
+        if (!S.hasPartner || S.usedFlags.wasCheatedChecked) return true;
+        S.usedFlags.wasCheatedChecked = true;
+        return !chance(0.3);
+      },
+      text:()=> "Тебе 22. Ты замечаешь странное поведение своего партнёра.",
+      choices:()=>[
+        { text:"Проверить телефон", effects:{mental:-5}, log:"Ты нашёл(ла) доказательства измены.",
+          flags:()=>{ S.usedFlags.wasCheatedOn=true; S.hasPartner=false; S.partnerTrait=null; S.happiness=clamp(S.happiness-20); S.mental=clamp(S.mental-15); if (chance(0.3)) { S.hasSTD=true; addLog("Партнёр заразил(а) тебя ЗППП.", "down"); } 
+            if (S.children > 0) { S.usedFlags.hadBaggage = true; addLog("Ты остался(ась) с ребёнком на руках.", "down"); }
+          } },
+        { text:"Поговорить напрямую", effects:{happiness:-5}, log:"Партнёр признался(ась). Вы расстались.",
+          flags:()=>{ S.usedFlags.wasCheatedOn=true; S.hasPartner=false; S.partnerTrait=null; S.happiness=clamp(S.happiness-10); 
+            if (S.children > 0) { S.usedFlags.hadBaggage = true; addLog("Ты остался(ась) с ребёнком на руках.", "down"); }
+          } },
+        { text:"Закрыть глаза", effects:{happiness:-8,mental:-5}, log:"Ты решил(а) не знать правду." }
+      ] },
+    { age:22, title:"Научная карьера", skip:()=> {
+        if (S.education < 70 || S.usedFlags.sciDev1) return true;
+        S.usedFlags.sciDev1 = true;
+        return !chance(0.6);
+      },
+      text:()=> "Тебе предлагают пойти в науку.",
+      choices:()=>[
+        { text:"Стать учёным", effects:{money:-6,education:+25,happiness:+12,socialOpinion:+12,mental:+6}, log:"Ты стал(а) учёным.",
+          flags:()=>{ S.businessLevel = 0; S.education = clamp(S.education + 25); } },
+        { text:"Работать по специальности", effects:{money:+18,education:+6}, log:"Ты нашёл(а) работу." },
+        { text:"Открыть дело", effects:{money:-12,education:+6,happiness:+6}, log:"Ты ушёл(ла) в бизнес.",
+          flags:()=>{ S.businessLevel = 1; } }
+      ] },
+    { age:22, title:"Встреча со звездой", skip:()=> {
+        if (S.usedFlags.celebrityChecked) return true;
+        S.usedFlags.celebrityChecked = true;
+        return !chance(0.05);
+      },
+      text:()=> {
+        const celeb = pick(CELEBRITIES[S.country] || ["известный человек"]);
+        return `Тебе 22. Ты встретил(а) ${celeb}!`;
+      },
+      choices:()=>[
+        { text:"Подойти", effects:{happiness:+18,socialOpinion:+6,mental:+6}, log:"Вы поговорили!",
+          flags:()=>{ S.metCelebrity = true; } },
+        { text:"Автограф", effects:{happiness:+10,mental:+4}, log:"Ты получил(а) автограф.",
+          flags:()=>{ S.metCelebrity = true; } },
+        { text:"Мимо", effects:{happiness:+1}, log:"Ты прошёл(ла) мимо." }
+      ] },
+    { age:23, title:"Развитие бизнеса", skip:()=> {
+        if (S.businessLevel === 0 || S.usedFlags.bizDev1) return true;
+        S.usedFlags.bizDev1 = true;
+        return false;
+      },
+      text:()=> "Твой бизнес работает. Пора расширяться.",
+      choices:()=>[
+        { text:"Открыть второй филиал", effects:{money:-25,happiness:+12,socialOpinion:+6,mental:+3}, log:"Ты открыл(а) филиал.",
+          flags:()=>{ S.businessLevel = 2; } },
+        { text:"Оставить как есть", effects:{money:+6,happiness:+3}, log:"Ты не рискнул(а)." },
+        { text:"Продать бизнес", effects:{money:+35,happiness:-6,mental:-3}, log:"Ты продал(а) бизнес.",
+          flags:()=>{ S.businessLevel = 0; } }
+      ] },
+    { age:23, title:"Реакция семьи", skip:()=> !isLGBT || !S.cameOut || S.familyReacted,
+      text:()=> `${S.name}, тебе 23. Ты рассказал(а) семье о себе.`,
+      choices:()=>[
+        { text:"Семья приняла", effects:{happiness:+18,health:+5,socialOpinion:+4,mental:+12}, log:"Семья приняла.",
+          flags:()=>{ S.familyAccepted=true; S.familyReacted=true; } },
+        { text:"Семья холодна", effects:{happiness:-10,health:-3,socialOpinion:-6,mental:-18}, log:"Семья не приняла.",
+          flags:()=>{ S.familyAccepted=false; S.familyReacted=true; S.traumas.push("family"); } },
+        { text:"Семья отвергла", effects:{happiness:-20,money:-10,health:-5,socialOpinion:-15,mental:-30}, log:"Семья отвернулась.",
+          flags:()=>{ S.familyAccepted=false; S.familyReacted=true; S.traumas.push("family"); } }
+      ] },
+    { age:24, title:"Одиночество", skip:()=> S.hasPartner,
+      text:()=> {
+        let extra = "";
+        if (isGirl && S.children > 0 && c.conservative) {
+          extra = " В консервативной стране с ребёнком без пары найти партнёра сложнее.";
+        }
+        return `Тебе ${S.age}. Ты одинок(а).${extra}`;
+      },
+      choices:()=>{
+        let baseChance = 0.4;
+        if (isGirl && S.children > 0 && c.conservative) baseChance = 0.24;
+        
+        return [
+          { text:"Искать партнёра", effects:{happiness:+8,mental:+5,money:-3}, log:"Ты начал(а) искать.",
+            flags:()=>{ if (S.usedFlags.hardToFindPartner && chance(0.5)) { addLog("Ты пытался(ась), но слух о тебе отпугивает.", "down"); return; } if (chance(baseChance)) { S.hasPartner=true; S.partnerTrait = generatePartner().trait; applyPartnerTrait(); addLog("Ты встретил(а) кого-то!", "up"); } else { addLog("Поиски не увенчались успехом.", "down"); } } },
+          { text:"Смириться", effects:{happiness:-5,mental:-3,education:+3}, log:"Ты смирился(ась)." }
+        ];
+      } },
+    { age:24, title:"Повседневность", text:()=> `Тебе ${S.age}. Жизнь идёт своим чередом.`,
+      choices:()=>[
+        { text:"Работать", effects:{money:+10,health:-3,happiness:+2}, log:"Ты работал(а)." },
+        { text:"Отдыхать", effects:{happiness:+8,health:+4,money:-5,mental:+4}, log:"Ты отдохнул(а)." },
+        { text:"Учиться", effects:{education:+8,money:-4,happiness:+3}, log:"Ты учился(ась)." }
+      ] },
+    { age:25, title:"Молодость", text:()=> `${S.name}, тебе 25.`,
+      choices:()=>{
+        const base = [
+          { text:"Карьера", effects:{money:+22,happiness:-5,health:-5,socialOpinion:+3,mental:-4}, log:"Ты поднялся(ась).",
+            flags:()=>{ if (S.businessLevel === 0 && chance(0.5)) S.businessLevel = 1; } },
+          { text:"Семья", effects:{happiness:+15,money:-7,health:+3,socialOpinion:+5,mental:+6}, log:"Ты создал(а) семью." },
+          { text:"Здоровье", effects:{health:+15,education:+10,money:-5,socialOpinion:0,mental:+4}, log:"Ты инвестировал(а) в себя." }
+        ];
+        return base;
+      } },
+    { age:25, title:"Криминальные разборки", skip:()=> {
+        if (!S.isCriminal || S.gangLevel < 1 || S.usedFlags.gangDev1) return true;
+        S.usedFlags.gangDev1 = true;
+        return false;
+      },
+      text:()=> "Ты в криминале.",
+      choices:()=>[
+        { text:"Ограбить банк", effects:{money:+60,health:-25,socialOpinion:-20,mental:-20}, log:"Ты ограбил(а) банк.",
+          flags:()=>{ S.gangLevel = 2; S.traumas.push("wanted"); } },
+        { text:"Отмывание денег", effects:{money:+25,socialOpinion:-8,mental:-5}, log:"Ты отмывал(а) деньги." },
+        { text:"Звязать с криминалом", effects:{money:-12,happiness:+12,mental:+20,socialOpinion:+6}, log:"Ты завязал(а).",
+          flags:()=>{ S.isCriminal = false; S.gangLevel = 0; } }
+      ] },
+    { age:26, title:"Религиозный путь", skip:()=> {
+        if (S.religiousLevel < 1 || S.usedFlags.relDev1) return true;
+        S.usedFlags.relDev1 = true;
+        return false;
+      },
+      text:()=> "Ты глубоко верующий.",
+      choices:()=>[
+        { text:"Стать священником", effects:{faith:+35,happiness:+18,socialOpinion:+12,mental:+12,money:-6}, log:"Ты посвятил(а) себя.",
+          flags:()=>{ S.religiousLevel = 2; } },
+        { text:"Паломничество", effects:{money:-12,faith:+18,mental:+12,happiness:+6}, log:"Ты совершил(а) паломничество.",
+          flags:()=>{ S.religiousLevel = 1; } },
+        { text:"Остаться мирянином", effects:{faith:+6,happiness:+3}, log:"Ты остался(ась) в миру." }
+      ] },
+    { age:28, title:"Карьерный рост", skip:()=> {
+        if (!S.profession || S.profession === "no_study" || S.careerLevel < 1 || S.usedFlags.careerDev28) return true;
+        S.usedFlags.careerDev28 = true;
+        return false;
+      },
+      text:()=> {
+        const profDescr = {
+          doctor:"опытным врачом", police:"опытным полицейским", lawyer:"опытным юристом",
+          economist:"опытным экономистом", teacher:"опытным учителем", tutor:"популярным репетитором",
+          janitor:"дворником со стажем", cleaner:"уборщиком со стажем", homeless:"бездомным",
+          prostitution:"опытной работницей 18+", loader:"грузчиком"
+        };
+        return `Тебе 28. Ты стал(а) ${profDescr[S.profession] || "работником"}. Тебе предлагают повышение.`;
+      },
+      choices:()=>[
+        { text:"Согласиться", effects:{money:+15, socialOpinion:+10, mental:-3}, log:"Ты получил(а) повышение!",
+          flags:()=>{ S.careerLevel += 1; S.happiness = clamp(S.happiness + 5); } },
+        { text:"Отказаться", effects:{happiness:+3, mental:+3}, log:"Ты отказался(ась)." }
+      ] },
+    { age:30, title:"Переезд?", text:()=> `${S.name}, тебе 30.`,
+      choices:()=>{
+        const newCountry = pick(Object.keys(COUNTRIES).filter(c=>c!==S.country));
+        return [
+          { text:`Эмигрировать в ${COUNTRIES[newCountry].flag} ${newCountry}`, effects:{money:rand(-12,18),happiness:rand(-10,12),education:+6,health:-4,languages:+1,socialOpinion:-4,mental:rand(-6,6)}, log:`Ты переехал(а) в ${newCountry}.`, flags:()=>{ 
+            S.emigrated=true; S.country=newCountry; S.flag=COUNTRIES[newCountry].flag; S.socialScore+=1;
+          } },
+          { text:"Остаться", effects:{happiness:+5,money:+3,socialOpinion:+3}, log:"Ты остался(ась)." }
+        ];
+      } },
+    { age:31, title:"Второй шанс", skip:()=> {
+        if (!isGirl || !S.usedFlags.wasAssaulted || S.hasPartner) return true;
+        if (COUNTRIES[S.country].progressiveness === 0) return true;
+        if (S.usedFlags.secondChanceChecked) return true;
+        S.usedFlags.secondChanceChecked = true;
+        return !chance(0.5);
+      },
+      text:()=> `${S.name}, тебе 31. Ты встречаешь человека, который не осуждает.`,
+      choices:()=>[
+        { text:"Попробовать", effects:{happiness:+15,mental:+10,socialOpinion:+3}, log:"Ты полюбила снова.",
+          flags:()=>{ S.hasPartner=true; S.partnerTrait = generatePartner().trait; applyPartnerTrait(); } },
+        { text:"Не готова", effects:{mental:+3,happiness:-2}, log:"Ты не готова." }
+      ] },
+    { age:35, title:"Зрелость", text:()=> `${S.name}, тебе 35.`,
+      choices:()=>[
+        { text:"Бизнес", effects:{money:rand(-18,30),happiness:+6,health:-6,socialOpinion:+4,mental:-4}, log:"Ты рискнул(а).",
+          flags:()=>{ if (S.businessLevel === 0) S.businessLevel = 1; } },
+        { text:"Сменить профессию", effects:{education:+10,money:-6,happiness:+8,socialOpinion:+2}, log:"Ты освоил(а) новое." },
+        { text:"Спокойствие", effects:{money:+10,health:+4,happiness:+3,socialOpinion:+2,mental:+4}, log:"Ты выбрал(а) стабильность." }
+      ] },
+    { age:35, title:"Кризис карьеры", skip:()=> {
+        if (!S.profession || S.profession === "no_study" || S.usedFlags.careerDev35) return true;
+        S.usedFlags.careerDev35 = true;
+        return false;
+      },
+      text:()=> `Тебе 35. В твоей профессии (${S.profession}) наступил кризис. Что делать?`,
+      choices:()=>[
+        { text:"Уйти в бизнес", effects:{money:rand(-15,25),happiness:+5,health:-5}, log:"Ты попробовал(а) себя в бизнесе.",
+          flags:()=>{ if (S.businessLevel === 0) S.businessLevel = 1; } },
+        { text:"Остаться в профессии", effects:{money:+8, socialOpinion:+5, mental:+3}, log:"Ты остался(ась) верен(на) делу.",
+          flags:()=>{ S.careerLevel += 1; } },
+        { text:"Сменить профессию", effects:{education:+10,money:-6,happiness:+6}, log:"Ты освоил(а) новое." }
+      ] },
+    { age:45, title:"Мастерство", skip:()=> {
+        if (!S.profession || S.profession === "no_study" || S.careerLevel < 2 || S.usedFlags.careerDev45) return true;
+        S.usedFlags.careerDev45 = true;
+        return false;
+      },
+      text:()=> {
+        const profDescr = {
+          doctor:"врачом", police:"полицейским", lawyer:"юристом", economist:"экономистом",
+          teacher:"учителем", tutor:"репетитором", janitor:"дворником", cleaner:"уборщиком",
+          homeless:"бездомным", prostitution:"работницей 18+", loader:"грузчиком"
+        };
+        return `Тебе 45. Ты стал(а) настоящим мастером — опытным ${profDescr[S.profession] || "работником"}.`;
+      },
+      choices:()=>[
+        { text:"Обучать молодых", effects:{money:+10, socialOpinion:+10, happiness:+8, education:+5}, log:"Ты передаёшь опыт.",
+          flags:()=>{ S.careerLevel += 1; } },
+        { text:"Открыть своё дело", effects:{money:+20, happiness:+5, health:-5}, log:"Ты открыл(а) частное дело.",
+          flags:()=>{ S.businessLevel = Math.max(1, S.businessLevel); S.money += 20; } }
+      ] },
+    { age:50, title:"Середина жизни", text:()=> `${S.name}, тебе 50.`,
+      choices:()=>[
+        { text:"Инвестиции", effects:{money:rand(-12,25),education:+4,health:-3,socialOpinion:+2}, log:"Инвестиции." },
+        { text:"Семья", effects:{happiness:+15,health:+5,money:-5,socialOpinion:+4,mental:+6}, log:"Счастье в близких." },
+        { text:"Здоровье", effects:{health:+18,happiness:+5,money:-4,mental:+4}, log:"Забота о себе." }
+      ] },
+    { age:60, title:"Внуки?", text:()=> S.hadChild ? `${S.name}, тебе 60.` : `${S.name}, тебе 60. Детей нет.`,
+      choices:()=>{
+        const base = [
+          { text:"Путешествовать", effects:{happiness:+12,money:-12,health:-3,languages:+1,mental:+4}, log:"Ты увидел(а) мир." },
+          { text:"Советы молодым", effects:{education:+8,happiness:+5,socialOpinion:+3,mental:+4}, log:"Твой опыт пригодился." }
+        ];
+        if (S.hadChild) base.unshift({ text:"Внуки", effects:{happiness:+15,health:-3,socialOpinion:+4,mental:+8}, log:"Ты заботливый(ая) дедушка/бабушка." });
+        else base.push({ text:"Питомец", effects:{happiness:+10,money:-5,mental:+6}, log:"Питомец скрасил одиночество." });
+        return base;
+      } },
+    { age:65, title:"Пожилой возраст", text:()=> `${S.name}, тебе 65.`,
+      choices:()=>[
+        { text:"Путешествия", effects:{happiness:+16,money:-12,health:-3,mental:+5}, log:"Ты набрался(ась) впечатлений." },
+        { text:"Помогать детям", effects:{happiness:+12,health:+3,money:-5,socialOpinion:+3}, log:"Ты опора семьи." },
+        { text:"Спокойствие", effects:{health:+10,happiness:+4,money:+3,mental:+4}, log:"Ты выбрал(а) тишину." }
+      ] },
+    { age:75, title:"Мудрость", text:()=> `${S.name}, тебе 75.`,
+      choices:()=>[
+        { text:"Мемуары", effects:{education:+10,happiness:+8,socialOpinion:+3,mental:+6}, log:"Твоя история вдохновит." },
+        { text:"Внуки", effects:{happiness:+12,education:+3,socialOpinion:+2,mental:+5}, log:"Ты передал(а) мудрость.",
+          note:()=> S.hadChild ? "" : "У тебя нет детей" },
+        { text:"Отдыхать", effects:{health:+8,happiness:+5,mental:+4}, log:"Ты заслужил(а) покой." }
+      ] },
+    // ——— НОВЫЕ ЭТАПЫ ПОСЛЕ 75 ———
+    { age:78, title:"Старость", text:()=> `${S.name}, тебе 78. Годы берут своё.`,
+      choices:()=>[
+        { text:"Тихие прогулки", effects:{health:+5,happiness:+4,mental:+3}, log:"Спокойные дни." },
+        { text:"Общаться с семьёй", effects:{happiness:+8,health:+2,socialOpinion:+2}, log:"Тепло близких." },
+        { text:"Читать", effects:{education:+5,happiness:+3,mental:+3}, log:"Мудрость книг." }
+      ] },
+    { age:82, title:"Глубокая старость", text:()=> `${S.name}, тебе 82.`,
+      choices:()=>[
+        { text:"Заботиться о здоровье", effects:{health:+8,happiness:+3,mental:+3}, log:"Бережёшь себя." },
+        { text:"Вспоминать жизнь", effects:{happiness:+5,mental:+5,education:+3}, log:"Воспоминания." },
+        { text:"Проводить время с близкими", effects:{happiness:+9,socialOpinion:+3,mental:+4}, log:"Близкие рядом." }
+      ] },
+    { age:86, title:"Последние годы", text:()=> `${S.name}, тебе 86.`,
+      choices:()=>[
+        { text:"Покой", effects:{health:+6,happiness:+4,mental:+4}, log:"Тишина и покой." },
+        { text:"Наставничество", effects:{education:+5,happiness:+6,socialOpinion:+3,mental:+5}, log:"Передаёшь мудрость." },
+        { text:"Молиться / медитировать", effects:{faith:+10,happiness:+4,mental:+6}, log:"Душевный покой." }
+      ] },
+    { age:89, title:"Почти всё", text:()=> `${S.name}, тебе 89.`,
+      choices:()=>[
+        { text:"Жить настоящим", effects:{happiness:+8,mental:+5}, log:"Каждый день — подарок." },
+        { text:"Попрощаться с миром", effects:{happiness:+5,mental:+8,faith:+5}, log:"Ты готов(а)." }
+      ] }
+  );
+
+  stages.push(makeDebtStage(18, "workedDebt18"));
+  stages.push(makeDebtStage(25, "workedDebt25"));
+  stages.push(makeDebtStage(30, "workedDebt30"));
+  stages.push(makeDebtStage(40, "workedDebt40"));
+
+  stages.push({
+    age: 19,
+    title: "Тёмная сторона",
+    skip:()=> {
+      if (S.gender !== "male") return true;
+      if (S.socialOpinion > 30) return true;
+      if (S.usedFlags.rapistChecked) return true;
+      S.usedFlags.rapistChecked = true;
+      return !chance(0.4);
+    },
+    text:()=> "Общество отвернулось от тебя. Ты чувствуешь злость. На улице ты видишь девушку...",
+    choices:()=>[
+      { text:"Изнасиловать", effects:{happiness:-5, mental:-15, socialOpinion:-25, health:-5}, log:"Ты совершил насилие. Это изменит всё.",
+        flags:()=>{
+          S.usedFlags.rapist = true;
+          S.traumas.push("rape_committed");
+          if (S.hasPartner) {
+            S.hasPartner = false;
+            S.partnerTrait = null;
+            addLog("Твой партнёр узнал(а) и бросил(а) тебя.", "down");
+            S.happiness = clamp(S.happiness - 20);
+            S.mental = clamp(S.mental - 15);
+            if (S.children > 0) S.usedFlags.hadBaggage = true;
+          } else {
+            addLog("Слух разнёсся. Теперь тебе будет сложнее найти партнёра.", "down");
+            S.usedFlags.hardToFindPartner = true;
+          }
+        } },
+      { text:"Отступить", effects:{mental:+3, happiness:-3}, log:"Ты отступил(а) в последний момент." }
+    ]
+  });
+
+  const armyEnd = S.armyEndAge || 18;
+  if (S.servedArmy && armyEnd > 18) {
+    stages.forEach(st => {
+      if (st.title && st.title.startsWith("Армия")) return;
+      if (st.title && st.title.startsWith("Долговая")) return;
+      if (st.title === "Выбор профессии после армии") return;
+      if (st.title === "Выбор профессии") return;
+      if (st.age >= 19 && st.age <= armyEnd) {
+        st.age = armyEnd;
+      }
+    });
+  }
+
+  if (S.armyEndAge > 18) {
+    const armyInternalCount = 6;
+    const step = Math.max(1, Math.floor((S.armyEndAge - 18) / armyInternalCount));
+    let age = 18;
+    armyStages.forEach((st, idx) => {
+      if (idx === 0) return;
+      st.age = Math.min(S.armyEndAge - 1, age + step);
+      age += step;
+    });
+  }
+
+  stages.sort((a, b) => {
+    let aAge = a.age;
+    let bAge = b.age;
+    if (a.title === "Выбор профессии после армии") aAge = (S.armyEndAge || 18) + 0.5;
+    if (b.title === "Выбор профессии после армии") bAge = (S.armyEndAge || 18) + 0.5;
+    if (a.title === "Выбор профессии") aAge = 18 + 0.1;
+    if (b.title === "Выбор профессии") bAge = 18 + 0.1;
+    return aAge - bAge;
+  });
+
+  return stages;
+}
+
+function makeDebtStage(age, flagKey) {
+  const isGirl = S.gender === "female";
+  const c = COUNTRIES[S.country];
+  return {
+    age,
+    title: `Долговая кабала (${age})`,
+    skip:()=> {
+      if (S.debt <= 0) return true;
+      if (S.usedFlags[flagKey]) return true;
+      S.usedFlags[flagKey] = true;
+      return false;
+    },
+    text:()=> `Тебе ${age}. Долг ${S.debt} монет висит на тебе. Кредиторы нашли тебя.`,
+    choices:()=>{
+      const canPay = S.money >= S.debt;
+      const opts = [];
+      if (canPay) {
+        opts.push({ text:"Выплатить долг", effects:{money:-S.debt, happiness:+5, mental:+5}, log:"Ты выплатил(а) долг.",
+          flags:()=>{ S.debt = 0; S.usedFlags.paidDebt = true; } });
+      }
+      opts.push({ text:"Не выплачивать", effects:{happiness:-10, mental:-10, health:-5}, log:"Ты не выплатил(а) долг.",
+        flags:()=>{ 
+          if (isGirl && c.progressiveness === 0) {
+            addLog("Тебя забрали в рабство.", "down");
+            S.usedFlags.enslaved = true; S.traumas.push("slavery"); S.debt = 0;
+            S.happiness = clamp(S.happiness - 20); S.mental = clamp(S.mental - 20);
+          } else {
+            addLog("Тебя отправили на грязную работу.", "down");
+            S.debt = 0; S.usedFlags.paidDebt = true; S.happiness = clamp(S.happiness - 10);
+          }
+        } });
+      if (!canPay) {
+        if (isGirl) {
+          opts.push({ 
+            text: "«Договориться» с кредитором", 
+            effects: { happiness: -10, mental: -25, health: -5, socialOpinion: -5 }, 
+            log: "Ты «договорилась» с кредитором.",
+            flags: () => {
+              S.usedFlags.favorsForDebt = true;
+              S.happiness = clamp(S.happiness - 10);
+              S.mental = clamp(S.mental - 25);
+              S.health = clamp(S.health - 5);
+              S.socialOpinion = clamp(S.socialOpinion - 5);
+
+              if (S.hasPartner) {
+                S.hasPartner = false;
+                S.partnerTrait = null;
+                addLog("Твой партнёр узнал(а) и бросил(а) тебя.", "down");
+                S.happiness = clamp(S.happiness - 20);
+                if (S.children > 0) S.usedFlags.hadBaggage = true;
+              }
+              if (S.children > 0) {
+                S.children = 0;
+                S.hadChild = false;
+                addLog("Дети узнали и отказались от тебя.", "down");
+                S.happiness = clamp(S.happiness - 30);
+                S.mental = clamp(S.mental - 20);
+              }
+
+              if (chance(0.35)) {
+                S.hasSTD = true;
+                addLog("После этого ты подхватила ЗППП.", "down");
+              }
+
+              S.pendingVomit = true;
+            }
+          });
+        } else {
+          opts.push({ text:"Продать почку", effects:{money:-S.debt, health:-25, happiness:-10, mental:-5}, log:"Ты продал(а) почку.",
+            flags:()=>{ S.debt=0; S.usedFlags.paidDebt=true; S.usedFlags.soldKidney=true; S.health=clamp(S.health-25); S.happiness=clamp(S.happiness-10); } });
+        }
+      }
+      return opts;
+    }
+  };
+}
+
+const RANDOM_EVENTS = [
+  { id:"lottery", minAge:18, maxAge:90, text:()=>"🎰 Лотерея.",
+    choices:()=>[
+      { text:"Проверить", effects:{money:rand(-3,40),socialOpinion:-1}, log:"Лотерея." },
+      { text:"Выбросить", effects:{happiness:+1}, log:"Ты не стал(а)." }
+    ] },
+  { id:"friend", minAge:14, maxAge:90, text:()=>"🤝 Друг просит денег.",
+    choices:()=>[
+      { text:"Помочь", effects:{money:-10,happiness:+10,socialOpinion:+3,mental:+4}, log:"Ты помог(ла)." },
+      { text:"Отказать", effects:{money:+2,happiness:-4,socialOpinion:-2,mental:-4}, log:"Друг обиделся." }
+    ] },
+  { id:"meet", minAge:18, maxAge:40, text:()=>"💕 Встреча.",
+    choices:()=>[
+      { text:"Отношения", effects:{happiness:+12,health:+3,socialOpinion:+2,mental:+8}, log:"Ты нашёл(ла) любовь.", flags:()=>{ if (!S.hasPartner) { if (S.usedFlags.hardToFindPartner && chance(0.5)) { addLog("Слух о тебе отпугивает.", "down"); return; } S.foundLove=true; S.hasPartner=true; S.partnerTrait = generatePartner().trait; applyPartnerTrait(); } } },
+      { text:"Не рисковать", effects:{happiness:-3}, log:"Ты прошёл(ла)." }
+    ] },
+  { id:"language", minAge:16, maxAge:55, text:()=>"🌍 Язык.",
+    choices:()=>[
+      { text:"Учить", effects:{money:-6,education:+6,languages:+1,happiness:+4}, log:"Ты выучил(а) язык." },
+      { text:"Отказаться", effects:{}, log:"Ты не стал(а)." }
+    ] },
+  { id:"religion", minAge:16, maxAge:70, text:()=>"🕊️ Вера.",
+    choices:()=>[
+      { text:"Углубиться", effects:{faith:+18,happiness:+5,socialOpinion:+4,mental:+6}, log:"Ты стал(а) ближе к вере.",
+        flags:()=>{ if (chance(0.5)) S.religiousLevel = 1; } },
+      { text:"Отойти", effects:{faith:-12,happiness:+3,socialOpinion:-12,mental:-6}, log:"Ты отошёл(ла)." }
+    ] },
+  { id:"mental_break", minAge:18, maxAge:90, text:()=>"🌑 Тяжело.",
+    choices:()=>{
+      const opts = [];
+      if (S.hasPartner || (S.parentTrait && ["understanding","kind","loving","caring","responsive"].includes(S.parentTrait.id))) {
+        opts.push({ text:"С близкими", effects:{mental:+12,happiness:+4}, log:"Легче." });
+      }
+      opts.push(
+        { text:"Замкнуться", effects:{mental:-12,happiness:-5}, log:"Ты закрылся(ась)." },
+        { text:"Бороться", effects:{mental:+6,health:-3}, log:"Ты решил(а) бороться." }
+      );
+      return opts;
+    } },
+  { id:"addiction_moment", minAge:18, maxAge:90, text:()=>"💊 Тяга.",
+    skip:()=> S.addiction < 10,
+    choices:()=>[
+      { text:"Продолжать", effects:{happiness:+5,health:-8,mental:-5}, log:"Ты сорвался(ась).",
+        flags:()=>{ S.addiction = clamp(S.addiction + 15); } },
+      { text:"Бросить", effects:{health:+5,mental:-3}, log:"Ты пытаешься бросить.",
+        flags:()=>{ if (chance(0.3)) { S.addiction = 0; S.usedFlags.beatAddiction = true; addLog("Победа над зависимостью!", "up"); } else { S.addiction = clamp(S.addiction - 10); } } }
+    ] }
+];
+
+function nextStage() {
+  if (!S.alive) return endGame(S.deathReason || "Жизнь оборвалась...");
+  checkHealthState();
+  checkMentalState();
+  updateDebtButton(); updateChildButton(); updateAdoptButton();
+  
+  if (S.pendingVomit) {
+    S.pendingVomit = false;
+    return showVomitChoice(nextStage);
+  }
+  
+  if (PENDING_EDGE) {
+    PENDING_EDGE = false;
+    return showEdgeEvent(nextStage);
+  }
+  
+  if (!S.alive) return endGame(S.deathReason || "Ты не справился(ась).");
+  if (!STAGES_CACHE.length) STAGES_CACHE = getStages();
+  if (S.stageIndex >= STAGES_CACHE.length) {
+    if (checkLifeLimit()) return;
+    return endGame(S.deathReason || "Жизнь завершилась.");
+  }
+
+  if (S.beauty >= 80) { S.happiness = clamp(S.happiness + 2); S.mental = clamp(S.mental + 2); }
+  else if (S.beauty < 25) { S.happiness = clamp(S.happiness - 2); S.mental = clamp(S.mental - 2); }
+
+  while (S.stageIndex < STAGES_CACHE.length) {
+    const st = STAGES_CACHE[S.stageIndex];
+    if (st.skip && st.skip()) {
+      if (st.title && st.title.startsWith("Армия —") && st.title !== "Армия — призыв") {
+        S.armySubStage = (S.armySubStage || 0) + 1;
+      }
+      S.stageIndex++;
+      continue;
+    }
+    break;
+  }
+  if (S.stageIndex >= STAGES_CACHE.length) {
+    if (checkLifeLimit()) return;
+    return endGame(S.deathReason || "Жизнь завершилась.");
+  }
+
+  if (S.stageIndex > 0 && chance(0.35)) {
+    const age = STAGES_CACHE[S.stageIndex].age;
+    const available = RANDOM_EVENTS.filter(e => !S.usedEvents.includes(e.id) && age >= e.minAge && age <= e.maxAge && (!e.skip || !e.skip()));
+    if (available.length) {
+      const ev = pick(available);
+      S.usedEvents.push(ev.id);
+      return showEvent(ev, nextStage);
+    }
+  }
+
+  const stage = STAGES_CACHE[S.stageIndex];
+
+  let stageAge = stage.age;
+  if (stage.title === "Выбор профессии после армии") {
+    stageAge = S.armyEndAge || 18;
+  }
+  if (stageAge > S.age) S.age = stageAge;
+
+  const isArmyInternal = stage.title && stage.title.startsWith("Армия —") && stage.title !== "Армия — призыв";
+
+  updateDebtButton(); updateChildButton(); updateAdoptButton();
+  showEvent(stage, () => {
+    S.stageIndex++;
+    if (isArmyInternal) S.armySubStage = (S.armySubStage || 0) + 1;
+    renderStats(); renderLog(); renderIdentity();
+    updateDebtButton(); updateChildButton(); updateAdoptButton();
+    
+    if (checkLifeLimit()) return;
+    
+    setTimeout(nextStage, 250);
+  }, true);
+}
+
+function checkMentalState() {
+  if (S.mental < 10 && !S.suicidalThoughts) {
+    S.suicidalThoughts = true;
+    addLog(`🌑 Появляются мысли о суициде...`, "down");
+  }
+  if (S.suicidalThoughts && S.mental < 10 && S.age >= 18 && S.alive && !S.suicideAttempted && !S.survivedEdge) {
+    PENDING_EDGE = true;
+  }
+}
+
+function showVomitChoice(onDone) {
+  const badge = document.getElementById("ageBadge");
+  badge.textContent = `Возраст: ${S.age} лет`;
+  badge.className = "age-badge dark";
+
+  document.getElementById("eventText").textContent = `После «договорённости» с кредитором тебя тошнит. Что делать?`;
+
+  const choicesEl = document.getElementById("choices");
+  choicesEl.innerHTML = "";
+
+  const options = [
+    { 
+      text: "🤢 Вырвать", 
+      effects: { health: -15, mental: -10 }, 
+      log: "Кредитор ударил тебя. Долг остался.", 
+      flags: () => {
+        S.health = clamp(S.health - 15);
+        S.mental = clamp(S.mental - 10);
+        S.debt = Math.max(50, S.debt || 50);
+        S.usedFlags.paidDebt = false;
+      } 
+    },
+    { 
+      text: "😨 Стерпеть и проглотить", 
+      effects: { mental: -15 }, 
+      log: "Ты заставила себя проглотить. Внутри — пустота.", 
+      flags: () => {
+        S.mental = clamp(S.mental - 15);
+        S.debt = 0;
+        S.usedFlags.paidDebt = true;
+      } 
+    }
+  ];
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    const labels = { money:"💰", health:"❤️", happiness:"😊", education:"🎓", languages:"🌍", socialOpinion:"👥", faith:"🕊️", mental:"🧠", beauty:"💄", addiction:"💊", debt:"💳" };
+    const effectStr = Object.entries(opt.effects).map(([k,v]) => `${labels[k]||k} ${v>0?"+":""}${v}`).join("  ");
+    
+    btn.innerHTML = `${opt.text}<span class="effect">${effectStr}</span>`;
+    btn.onclick = () => {
+      for (const [k,v] of Object.entries(opt.effects)) {
+        if (S[k] !== undefined) S[k] = clamp(S[k] + v);
+      }
+      if (opt.flags) opt.flags();
+      addLog(opt.log, "down");
+      renderStats(); renderLog(); renderIdentity();
+      onDone();
+    };
+    choicesEl.appendChild(btn);
+  });
+  renderStats();
+}
+
+function showEdgeEvent(onDone) {
+  const q = COUNTRIES[S.country].therapyQuality;
+  const hasPartner = S.hasPartner;
+  const hasMoney = S.money >= 5;
+  const isSupportive = S.parentTrait && ["understanding","kind","loving","caring","responsive"].includes(S.parentTrait.id);
+  
+  let survivalChance = 0.15 + q * 0.5;
+  if (hasPartner) survivalChance += 0.15;
+  if (isSupportive) survivalChance += 0.1;
+  if (hasMoney) survivalChance += 0.1;
+  survivalChance = Math.min(0.95, survivalChance);
+
+  const badge = document.getElementById("ageBadge");
+  badge.textContent = `Возраст: ${S.age} лет`;
+  badge.className = "age-badge dark";
+
+  document.getElementById("eventText").textContent = `Тебе ${S.age}. На краю... Как поступишь?`;
+
+  const choicesEl = document.getElementById("choices");
+  choicesEl.innerHTML = "";
+
+  const options = [
+    { text:"Горячая линия", chance: survivalChance, success:{happiness:+10,mental:+20,socialOpinion:+2}, fail:{happiness:-5,mental:-5}, successLog:"Ответили.", failLog:"Никто не ответил." },
+    { text:"К близким", chance: hasPartner ? 0.8 : (isSupportive ? 0.7 : 0.4), success:{happiness:+8,mental:+15,socialOpinion:+1}, fail:{happiness:-8,mental:-10}, successLog:"Поддержали.", failLog:"Не поняли." },
+    { text:"Сам(а)", chance: 0.25, success:{mental:+8,happiness:+3}, fail:{mental:-15,happiness:-10}, successLog:"Нашёл силы.", failLog:"Не справился." },
+    { text:"Сдаться", chance:0, success:{}, fail:{mental:-100}, successLog:"", failLog:"Сдался." }
+  ];
+
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+    btn.innerHTML = `${opt.text}<span class="effect">${opt.text==="Сдаться"?"💀 Смерть":`Шанс: ~${Math.round(opt.chance*100)}%`}</span>`;
+    btn.onclick = () => {
+      S.suicideAttempted = true;
+      if (opt.text === "Сдаться") { S.alive = false; S.deathReason = "💔 Ты сдался(ась). Психика не выдержала."; return endGame(S.deathReason); }
+      if (chance(opt.chance)) {
+        for (const [k,v] of Object.entries(opt.success)) { if (S[k] !== undefined) S[k] = clamp(S[k] + v); }
+        addLog(opt.successLog, "up"); S.survivedEdge = true;
+        renderStats(); renderLog(); renderIdentity(); onDone();
+      } else {
+        for (const [k,v] of Object.entries(opt.fail)) { if (S[k] !== undefined) S[k] = clamp(S[k] + v); }
+        addLog(opt.failLog, "down");
+        if (S.mental < 5) { S.alive = false; S.deathReason = "💔 Психика не выдержала. Ты умер(ла) от отчаяния."; return endGame(S.deathReason); }
+        renderStats(); renderLog(); renderIdentity(); onDone();
+      }
+    };
+    choicesEl.appendChild(btn);
+  });
+  renderStats();
+}
+
+function showEvent(ev, onDone, isStage=false) {
+  const badge = document.getElementById("ageBadge");
+  badge.textContent = isStage ? `Возраст: ${S.age} лет` : `Случайное событие · ${S.age} лет`;
+  badge.className = "age-badge" + (isStage ? "" : " special");
+  if (ev.title && ev.title.startsWith("Армия")) badge.className = "age-badge army";
+  if (S.suicidalThoughts && S.mental < 10) badge.className = "age-badge dark";
+
+  document.getElementById("eventText").textContent = ev.text();
+  const choicesEl = document.getElementById("choices");
+  choicesEl.innerHTML = "";
+
+  ev.choices().forEach(ch => {
+    const btn = document.createElement("button");
+    btn.className = "choice";
+
+    let effectStr = "";
+    if (ch.effects) {
+      const labels = { money:"💰", health:"❤️", happiness:"😊", education:"🎓", languages:"🌍", socialOpinion:"👥", faith:"🕊️", mental:"🧠", beauty:"💄", addiction:"💊", debt:"💳" };
+      effectStr = Object.entries(ch.effects).map(([k,v]) => `${labels[k]||k} ${v>0?"+":""}${v}`).join("  ");
+    }
+
+    let note = "";
+    if (ch.note) { const cn = ch.note(); if (cn) note = cn; }
+    if (!note && (ch.text.includes("ребёнка") || ch.text.includes("отцом") || ch.text.includes("матерью")) && !S.hasPartner && !ch.text.includes("одиночку")) note = "Требуется партнёр";
+
+    btn.innerHTML = `${ch.text}<span class="effect">${effectStr}</span>${note?`<span class="note">⚠ ${note}</span>`:""}`;
+    btn.onclick = () => {
+      if (note) { alert(note); return; }
+      applyChoice(ch);
+      renderStats(); renderLog(); renderIdentity();
+      if (S.health <= 0) { S.alive = false; S.deathReason = `💔 Здоровье подорвано (${S.health}%). Ты не выдержал(а).`; return endGame(S.deathReason); }
+      onDone();
+    };
+    choicesEl.appendChild(btn);
+  });
+  renderStats();
+}
+
+function applyChoice(ch) {
+  const effects = { ...(ch.effects || {}) };
+  S.traits.forEach(t => TRAITS[t].apply(effects));
+
+  let socialRaw = 0;
+  if (effects.socialOpinion !== undefined) { socialRaw = effects.socialOpinion; delete effects.socialOpinion; }
+
+  for (const [key, val] of Object.entries(effects)) {
+    if (key === "money") S.money = Math.max(0, S.money + val);
+    else if (key === "languages") S.languages = (S.languages||1) + val;
+    else if (S[key] !== undefined) S[key] = clamp(S[key] + val);
+  }
+
+  if (socialRaw !== 0) {
+    const applied = applySocial(socialRaw);
+    if (applied !== 0) addLog(`${applied>0?"👥 +":"👥 "}${applied} к соц.мнению`, applied>0?"up":"down");
+  }
+
+  if (ch.flags) ch.flags();
+  if (ch.special) ch.special();
+
+  if (ch.log) {
+    let type = "down"; let sum = 0;
+    for (const v of Object.values(ch.effects||{})) sum += v;
+    if (sum > 0) type = "up";
+    if (ch.flags || ch.special) type = "special";
+    if (ch.effects && ch.effects.mental && ch.effects.mental < 0) type = "mental";
+    addLog(ch.log, type);
+  }
+
+  if (S.age >= 20 && !S.personality) finalizePersonality();
+  checkAchievements();
+  updateDebtButton(); updateChildButton(); updateAdoptButton();
+}
+
+function finalizePersonality() {
+  if (S.socialScore >= 4) S.personality = "Экстраверт";
+  else if (S.socialScore <= -4) S.personality = "Интроверт";
+  else S.personality = "Амбиверт";
+  addLog(`🧠 К 20 годам: ${S.personality}`, "special");
+}
+
+function renderStats() {
+  const statsEl = document.getElementById("stats");
+  const stats = [
+    { label:"Возраст", value:`${S.age} лет`, noBar:true },
+    { label:"💰 Деньги", value:S.money, key:"money", max:150 },
+    { label:"❤️ Здоровье", value:S.health+"%", key:"health", max:100 },
+    { label:"😊 Счастье", value:S.happiness+"%", key:"happy", max:100 },
+    { label:"🎓 Образование", value:S.education+"%", key:"edu", max:100 },
+    { label:"👥 Соц.мнение", value:S.socialOpinion+"%", key:"social", max:100 },
+    { label:"🧠 Психика", value:S.mental+"%", key:"mental", max:100, low: S.mental < 20 },
+    { label:"💄 Красота", value:S.beauty+"%", key:"beauty", max:100, low: S.beauty < 30 },
+    { label:"🕊️ Вера", value:S.faith+"%", key:"faith", max:100 },
+    { label:"👶 Дети", value:S.children, noBar:true },
+    { label:"💊 Зависимость", value:S.addiction+"%", key:"mental", max:100, low: S.addiction > 50 },
+    { label:"💳 Долг", value:S.debt, key:"money", max:100, noBar:true }
+  ];
+
+  statsEl.innerHTML = stats.map(s => {
+    let bar = "";
+    if (!s.noBar) {
+      const val = s.key==="money" ? Math.min(100, ((S.money||0)/s.max)*100) :
+                  s.key==="health" ? S.health :
+                  s.key==="happy" ? S.happiness :
+                  s.key==="social" ? S.socialOpinion :
+                  s.key==="mental" ? (s.label.includes("Зависимость") ? S.addiction : S.mental) :
+                  s.key==="faith" ? S.faith :
+                  s.key==="beauty" ? S.beauty : S.education;
+      const lowClass = ((s.key === "mental" && S.mental < 20) || (s.label.includes("Зависимость") && S.addiction > 50)) ? " low" : 
+                        (s.key === "beauty" && S.beauty < 30) ? " low" : "";
+      bar = `<div class="bar-wrap"><div class="bar ${s.key}${lowClass}" style="width:${val}%"></div></div>`;
+    }
+    return `<div class="stat"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div>${bar}</div>`;
+  }).join("");
+}
+
+function renderIdentity() {
+  const el = document.getElementById("identityBox");
+  const genderText = S.gender === "male" ? "👦 Мальчик" : "👧 Девочка";
+  const orientText = ORIENTATIONS[S.orientation].short;
+  const c = COUNTRIES[S.country];
+  let acceptText;
+  if (ORIENTATIONS[S.orientation].lgbt) {
+    if (c.acceptance < 0.2) acceptText = "🔴 крайне враждебно";
+    else if (c.acceptance < 0.5) acceptText = "🟡 настороженно";
+    else acceptText = "🟢 нормально";
+  } else acceptText = "—";
+  let status = "";
+  if (ORIENTATIONS[S.orientation].lgbt) {
+    if (S.cameOut) status = " · ✅ открыт(а)";
+    else if (S.selfAccepted) status = " · 🤫 скрывает";
+    else status = " · ❌ подавляет";
+    if (S.familyReacted) status += S.familyAccepted ? " · 👪 приняли" : " · 💔 отвергли";
+  }
+  let extra = "";
+  if (S.hasPartner) extra += ` <span class="relationship-badge">💕 Партнёр</span>`;
+  if (S.children > 0) extra += ` <span class="relationship-badge" style="background:rgba(67,170,139,0.2);border-color:rgba(67,170,139,0.5);color:#90e0c0;">👶 Детей: ${S.children}</span>`;
+  if (S.personality) extra += ` <span class="relationship-badge" style="background:rgba(67,170,139,0.2);border-color:rgba(67,170,139,0.5);color:#90e0c0;">🧠 ${S.personality}</span>`;
+  if (S.traumas.length) extra += ` <span class="relationship-badge">🩹 ${S.traumas.length}</span>`;
+  extra += ` <span class="relationship-badge" style="background:rgba(87,117,144,0.25);border-color:rgba(87,117,144,0.6);color:#a8c0d8;">🌍 ${S.languages}</span>`;
+  if (S.isMixed) extra += ` <span class="relationship-badge" style="background:rgba(155,93,229,0.3);border-color:rgba(155,93,229,0.7);color:#d4b3ff;">🌍 Смешанная семья</span>`;
+  if (S.isSingleParent) extra += ` <span class="relationship-badge" style="background:rgba(155,93,229,0.3);border-color:rgba(155,93,229,0.7);color:#d4b3ff;">👤 Один родитель</span>`;
+  if (S.isSameSexParents) extra += ` <span class="relationship-badge" style="background:rgba(155,93,229,0.3);border-color:rgba(155,93,229,0.7);color:#d4b3ff;">👬 Однополая семья</span>`;
+  if (S.hereditaryDisease) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">⚠️ ${S.hereditaryDisease}</span>`;
+  if (S.suicidalThoughts) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.4);border-color:rgba(106,4,15,0.8);color:#ff9999;">🌑 Тёмные мысли</span>`;
+  if (S.isCriminal) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.4);border-color:rgba(106,4,15,0.8);color:#ff9999;">⛓️ Преступник</span>`;
+  if (S.isProstitute) extra += ` <span class="relationship-badge" style="background:rgba(155,93,229,0.4);border-color:rgba(155,93,229,0.8);color:#d4b3ff;">💋 Уличная жизнь</span>`;
+  if (S.metCelebrity) extra += ` <span class="relationship-badge" style="background:rgba(249,199,79,0.3);border-color:rgba(249,199,79,0.7);color:#f9c74f;">🌟 Звезда</span>`;
+  if (S.metPresident) extra += ` <span class="relationship-badge" style="background:rgba(249,199,79,0.5);border-color:rgba(249,199,79,0.9);color:#fff;">🏛️ Президент</span>`;
+  if (S.survivedEdge) extra += ` <span class="relationship-badge" style="background:rgba(144,190,109,0.3);border-color:rgba(144,190,109,0.7);color:#90be6d;">🪢 На краю</span>`;
+  if (S.businessLevel > 0) extra += ` <span class="relationship-badge" style="background:rgba(249,199,79,0.2);border-color:rgba(249,199,79,0.6);color:#f9c74f;">💼 Бизнес ур.${S.businessLevel}</span>`;
+  if (S.addiction > 30) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">💊 Зависимость</span>`;
+  if (S.debt > 0) extra += ` <span class="relationship-badge" style="background:rgba(249,199,79,0.3);border-color:rgba(249,199,79,0.7);color:#f9c74f;">💳 Долг ${S.debt}</span>`;
+  if (S.hasSTD) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">💉 ЗППП</span>`;
+  if (S.isInfertile) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">🍂 Бесплодие</span>`;
+  if (S.usedFlags && S.usedFlags.enslaved) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.5);border-color:rgba(106,4,15,0.9);color:#fff;">⛓️ Рабство</span>`;
+  if (S.servedArmy) extra += ` <span class="relationship-badge" style="background:rgba(87,117,144,0.4);border-color:rgba(87,117,144,0.8);color:#a8c0d8;">🪖 Армия ${S.armyYears} г.</span>`;
+  if (S.usedFlags && S.usedFlags.armyHazed) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">🥀 Дедовщина</span>`;
+  if (S.usedFlags && S.usedFlags.armyBully) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">👊 Дедовщина</span>`;
+  if (S.usedFlags && S.usedFlags.rapist) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.5);border-color:rgba(106,4,15,0.9);color:#fff;">🖤 Насильник</span>`;
+  if (S.usedFlags && S.usedFlags.hardToFindPartner) extra += ` <span class="relationship-badge" style="background:rgba(106,4,15,0.3);border-color:rgba(106,4,15,0.7);color:#ff9999;">💔 Трудно найти</span>`;
+  if (S.usedFlags && S.usedFlags.hadBaggage) extra += ` <span class="relationship-badge" style="background:rgba(249,199,79,0.3);border-color:rgba(249,199,79,0.7);color:#f9c74f;">🎒 С прицепом</span>`;
+  if (S.profession) {
+    const profLabels = { doctor:"🏥 Врач", police:"👮 Полицейский", lawyer:"⚖️ Юрист", economist:"📊 Экономист", teacher:"📚 Учитель", tutor:"📖 Репетитор", no_study:"🚫 Не учился", janitor:"🧹 Дворник", cleaner:"🧽 Уборщик", homeless:"🏚️ Бездомный", prostitution:"💃 18+", loader:"📦 Грузчик" };
+    let profStr = profLabels[S.profession] || S.profession;
+    if (S.careerLevel > 0) profStr += ` (ур.${S.careerLevel})`;
+    extra += ` <span class="relationship-badge" style="background:rgba(155,93,229,0.3);border-color:rgba(155,93,229,0.7);color:#d4b3ff;">${profStr}</span>`;
+  }
+  
+  el.innerHTML = `
+    <b>${S.flag} ${S.country}</b> · ${genderText} · ${orientText}${status}${extra}<br>
+    <span style="font-size:0.82rem;color:#a8b3bd;">ЛГБТ: ${acceptText} · Соц: ${S.socialOpinion}% · Психика: ${S.mental}% · Здоровье: ${S.health}% · Вера: ${S.faith}%</span>
+  `;
+}
+
+function renderTraits() {
+  const el = document.getElementById("traits");
+  if (!S.traits || !S.traits.length) { el.innerHTML = ""; return; }
+  el.innerHTML = S.traits.map(t => `<span class="trait" title="${TRAITS[t].desc}">✨ ${t}</span>`).join("");
+}
+
+function renderLog() {
+  const logEl = document.getElementById("log");
+  logEl.innerHTML = S.log.slice(-14).map(l => `<p class="${l.type}">${l.text}</p>`).join("");
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function addLog(text, type="") {
+  S.log.push({ text, type });
+  if (S.log.length > 60) S.log.shift();
+}
+
+function toggleAchievements() {
+  const box = document.getElementById("achBox");
+  if (box) box.classList.toggle("expanded");
+}
+
+function toggleMenuAchievements() {
+  const box = document.getElementById("achMenu");
+  if (box) box.classList.toggle("expanded");
+  if (box && box.classList.contains("expanded")) renderMenuAchievements();
+}
+
+function renderMenuAchievements() {
+  const el = document.getElementById("achMenuContent");
+  if (!el) return;
+  const rec = loadRecords();
+  const unlocked = Object.keys(rec.achievements || {});
+  el.innerHTML = ACHIEVEMENTS.map(a => {
+    const got = unlocked.includes(a.id);
+    return `<div class="ach-item ${got?"":"locked"}">${got?"✅":"🔒"} ${a.name}</div>`;
+  }).join("");
+  const label = document.getElementById("achCountLabel");
+  if (label) label.textContent = ACHIEVEMENTS.length;
+}
+
+function endGame(customMessage) {
+  if (S._ended) return;
+  S._ended = true;
+
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("finalScreen").classList.remove("hidden");
+
+  const totalScore = Math.round(
+    Math.min(100, num(S.money)*0.35) + num(S.health)*0.2 + num(S.happiness)*0.2 + num(S.education)*0.1 + num(S.socialOpinion)*0.1 + num(S.mental)*0.05
+  );
+
+  checkAchievements();
+
+  try {
+    const rec = loadRecords();
+    rec.totalGames = (rec.totalGames || 0) + 1;
+    if (totalScore > rec.bestScore) {
+      rec.bestScore = totalScore;
+      rec.bestCountry = `${S.flag} ${S.country}`;
+      rec.bestGender = S.gender === "male" ? "👦" : "👧";
+    }
+    if (num(S.age) > rec.bestAge) rec.bestAge = num(S.age);
+    GLOBAL_ACHIEVEMENTS.forEach(id => { rec.achievements[id] = true; });
+    saveRecords(rec);
+  } catch(e) {}
+
+  const recNow = loadRecords();
+
+  let title, desc;
+  if (customMessage) { 
+    title = "💔 Жизнь оборвалась"; 
+    desc = customMessage; 
+  }
+  else {
+    let rank;
+    if (totalScore >= 90) rank = "🌟 Легендарная жизнь";
+    else if (totalScore >= 70) rank = "🏆 Очень успешная жизнь";
+    else if (totalScore >= 50) rank = "😊 Достойная жизнь";
+    else if (totalScore >= 30) rank = "😐 Обычная жизнь";
+    else rank = "💔 Непростая судьба";
+    title = rank;
+    desc = `${S.name} прожил(а) ${S.age} лет в ${S.flag} ${S.country}.`;
+  }
+
+  document.getElementById("finalTitle").textContent = title;
+  document.getElementById("finalDesc").innerHTML = desc;
+
+  const profLabels = { doctor:"🏥 Врач", police:"👮 Полицейский", lawyer:"⚖️ Юрист", economist:"📊 Экономист", teacher:"📚 Учитель", tutor:"📖 Репетитор", no_study:"🚫 Не учился", janitor:"🧹 Дворник", cleaner:"🧽 Уборщик", homeless:"🏚️ Бездомный", prostitution:"💃 18+", loader:"📦 Грузчик" };
+  let profStr = S.profession ? (profLabels[S.profession] || S.profession) : "не выбрана";
+  if (S.careerLevel > 0) profStr += ` (уровень ${S.careerLevel})`;
+
+  const statsHtml = `
+    <div class="stat-row"><span>Имя</span><b>${S.name}</b></div>
+    <div class="stat-row"><span>Страна</span><b>${S.flag} ${S.country}${S.emigrated?" (эмигрант)":""}</b></div>
+    ${S.isMixed ? `<div class="stat-row"><span>Семья</span><b>🌍 Смешанная (${S.motherCountry} + ${S.fatherCountry})</b></div>` : ""}
+    ${S.isSingleParent ? `<div class="stat-row"><span>Семья</span><b>👤 Один родитель</b></div>` : ""}
+    ${S.isSameSexParents ? `<div class="stat-row"><span>Семья</span><b>👬 Однополая пара</b></div>` : ""}
+    ${S.hereditaryDisease ? `<div class="stat-row"><span>Наследственность</span><b>⚠️ ${S.hereditaryDisease}</b></div>` : ""}
+    <div class="stat-row"><span>Профессия</span><b>${profStr}</b></div>
+    <div class="stat-row"><span>Армия</span><b>${S.servedArmy ? "служил " + S.armyYears + " лет" : (S.usedFlags && S.usedFlags.dodgedArmy ? "косил" : "не служил")}</b></div>
+    <div class="stat-row"><span>Тип личности</span><b>${S.personality||"не сформировался"}</b></div>
+    <div class="stat-row"><span>Партнёр</span><b>${S.hasPartner ? "есть" : "нет"}</b></div>
+    <div class="stat-row"><span>Дети</span><b>${S.children > 0 ? S.children : "нет"}</b></div>
+    <div class="stat-row"><span>Бизнес</span><b>${S.businessLevel > 0 ? "уровень " + S.businessLevel : "нет"}</b></div>
+    <div class="stat-row"><span>Зависимость</span><b>${S.addiction > 0 ? S.addiction + "%" : "нет"}</b></div>
+    <div class="stat-row"><span>Долг</span><b>${S.debt > 0 ? S.debt : "нет"}</b></div>
+    <div class="stat-row"><span>ЗППП</span><b>${S.hasSTD ? "да" : "нет"}</b></div>
+    <div class="stat-row"><span>Бесплодие</span><b>${S.isInfertile ? "да" : "нет"}</b></div>
+    <div class="stat-row"><span>Травмы</span><b>${S.traumas.length ? S.traumas.length : "нет"}</b></div>
+    <div class="stat-row"><span>💰 Деньги</span><b>${S.money}</b></div>
+    <div class="stat-row"><span>❤️ Здоровье</span><b>${S.health}%</b></div>
+    <div class="stat-row"><span>😊 Счастье</span><b>${S.happiness}%</b></div>
+    <div class="stat-row"><span>🎓 Образование</span><b>${S.education}%</b></div>
+    <div class="stat-row"><span>👥 Соц.мнение</span><b>${S.socialOpinion}%</b></div>
+    <div class="stat-row"><span>🧠 Психика</span><b>${S.mental}%</b></div>
+    <div class="stat-row"><span>💄 Красота</span><b>${S.beauty}%</b></div>
+    <div class="stat-row"><span>🕊️ Вера</span><b>${S.faith}%</b></div>
+    <div class="stat-row"><span>🏅 Итоговый счёт</span><b>${totalScore} / 100</b></div>
+  `;
+  document.getElementById("finalStats").innerHTML = statsHtml;
+
+  const allUnlocked = [...new Set([
+    ...Object.keys(recNow.achievements || {}),
+    ...GLOBAL_ACHIEVEMENTS
+  ])];
+
+  try {
+    allUnlocked.forEach(id => { recNow.achievements[id] = true; });
+    saveRecords(recNow);
+  } catch(e) {}
+
+  document.getElementById("achTitle").textContent = `Достижения (${allUnlocked.length}/${ACHIEVEMENTS.length})`;
+  
+  const achContent = document.getElementById("achContent");
+  achContent.innerHTML = ACHIEVEMENTS.map(a => {
+    const got = allUnlocked.includes(a.id);
+    const inThisLife = GLOBAL_ACHIEVEMENTS.has(a.id);
+    const mark = got ? (inThisLife?"✅":"☑️") : "🔒";
+    return `<div class="ach-item ${got?"":"locked"}">${mark} ${a.name}</div>`;
+  }).join("");
+
+  renderRecords("recordsBoxFinal");
+}
+
+function downloadLifeSummary() {
+  const totalScore = Math.round(
+    Math.min(100, num(S.money)*0.35) + num(S.health)*0.2 + num(S.happiness)*0.2 + num(S.education)*0.1 + num(S.socialOpinion)*0.1 + num(S.mental)*0.05
+  );
+  
+  const profLabels = { doctor:"Врач", police:"Полицейский", lawyer:"Юрист", economist:"Экономист", teacher:"Учитель", tutor:"Репетитор", no_study:"Не учился", janitor:"Дворник", cleaner:"Уборщик", homeless:"Бездомный", prostitution:"Работа 18+", loader:"Грузчик" };
+  const profStr = S.profession ? (profLabels[S.profession] || S.profession) : "Не выбрана";
+  
+  const achievements = ACHIEVEMENTS.filter(a => GLOBAL_ACHIEVEMENTS.has(a.id)).map(a => a.name);
+  
+  let text = `===========================================
+       ИТОГИ ЖИЗНИ: ${S.name.toUpperCase()}
+===========================================
+Возраст смерти: ${S.age} лет
+Страна: ${S.flag} ${S.country}${S.emigrated ? " (эмигрант)" : ""}
+${S.isMixed ? `Смешанная семья: Мать — ${S.motherCountry}, Отец — ${S.fatherCountry}\n` : ""}${S.isSingleParent ? `Воспитывал(а) один родитель\n` : ""}${S.isSameSexParents ? `Однополая семья\n` : ""}${S.hereditaryDisease ? `Наследственность: ${S.hereditaryDisease}\n` : ""}
+Профессия: ${profStr}
+Итоговый счёт: ${totalScore} / 100
+
+-------------------------------------------
+           ОСНОВНЫЕ ХАРАКТЕРИСТИКИ
+-------------------------------------------
+Деньги:        ${S.money}
+Здоровье:      ${S.health}%
+Счастье:       ${S.happiness}%
+Образование:   ${S.education}%
+Соц. мнение:   ${S.socialOpinion}%
+Психика:       ${S.mental}%
+Красота:       ${S.beauty}%
+Вера:          ${S.faith}%
+Языки:         ${S.languages}
+
+-------------------------------------------
+              ЛИЧНАЯ ЖИЗНЬ
+-------------------------------------------
+Партнёр:       ${S.hasPartner ? "Есть" : "Нет"}
+Дети:          ${S.children > 0 ? S.children : "Нет"}
+${S.isInfertile ? "Бесплодие:     Да\n" : ""}${S.hasSTD ? "ЗППП:          Да\n" : ""}
+Армия:         ${S.servedArmy ? "Служил " + S.armyYears + " лет" : (S.usedFlags && S.usedFlags.dodgedArmy ? "Косил" : "Не служил")}
+Бизнес:        ${S.businessLevel > 0 ? "Уровень " + S.businessLevel : "Нет"}
+Зависимость:   ${S.addiction > 0 ? S.addiction + "%" : "Нет"}
+Долг:          ${S.debt > 0 ? S.debt : "Нет"}
+Травмы:        ${S.traumas.length > 0 ? S.traumas.length : "Нет"}
+
+-------------------------------------------
+              ДОСТИЖЕНИЯ (${achievements.length})
+-------------------------------------------
+${achievements.length > 0 ? achievements.map(a => "• " + a).join("\n") : "Нет достижений"}
+
+===========================================
+      Сгенерировано в симуляторе "Жизнь"
+===========================================`;
+
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Жизнь_${S.name}_${S.age}лет.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function restart() {
+  document.getElementById("finalScreen").classList.add("hidden");
+  document.getElementById("nameScreen").classList.add("hidden");
+  document.getElementById("startScreen").classList.remove("hidden");
+  renderRecords("recordsBox");
+  renderMenuAchievements();
+  PREVIEW = null;
+  S = {};
+  STAGES_CACHE = [];
+  PENDING_EDGE = false;
+  const box = document.getElementById("achBox");
+  if (box) box.classList.remove("expanded");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderRecords("recordsBox");
+  renderMenuAchievements();
+});
+</script>
+</body>
+</html>
