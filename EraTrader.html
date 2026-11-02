@@ -460,13 +460,19 @@ function rollPrices() {
     state.prices[g.id] = Math.max(1, Math.round(price));
   }
   
+  // 1. Редкий товар: генерируем цену для покупки только в Каменном веке
   state.hasRare = false;
   if (!state.inParallel && state.eraIndex === 0 && Math.random() < 0.10) {
     state.hasRare = true;
     state.prices[RARE_GOOD.id] = Math.round(RARE_GOOD.base * (0.8 + Math.random() * 0.5));
   }
+  
+  // 2. ФИКС: Задаём фиксированную (высокую) цену для пера в ЛЮБОЙ эпохе.
+  if (!state.prices[RARE_GOOD.id]) {
+    state.prices[RARE_GOOD.id] = Math.round(RARE_GOOD.base * (2.0 + Math.random() * 1.0));
+  }
 }
-
+  
 function rollEvent() {
   const pool = [
     { text: "Вспышка чумы — травы в цене!", good: "herbs", mult: 2.2 },
