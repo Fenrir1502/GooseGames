@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Торговец Эпох</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #0b0e14;
+    --surface: #151a24;
+    --surface-hover: #1c2333;
+    --border: rgba(255,255,255,0.08);
+    --text-main: #f0f4f8;
+    --text-muted: #8b95a5;
+    --gold: #fbbf24;
+    --gold-dark: #b48212;
+    --green: #10b981;
+    --green-dark: #059669;
+    --red: #ef4444;
+    --purple: #8b5cf6;
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  
+  body { 
+    font-family: 'Inter', system-ui, sans-serif; 
+    background: var(--bg); 
+    color: var(--text-main); 
+    min-height: 100vh; 
+    display: flex; justify-content: center; 
+    padding: 12px; padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: 90px; overflow-x: hidden; 
+  }
+
+  .game { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* === Панели === */
+  .card, .era, .slot, .good, .log, .bottom-nav, .overlay .panel, .main-menu, .shop-item, .stat-box {
+    background: var(--surface); 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  /* === Статы === */
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .stat-box { padding: 10px 12px; display: flex; flex-direction: column; justify-content: center; }
+  .stat-box .label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 4px; }
+  .stat-box .value { font-size: 1.25rem; font-weight: 800; line-height: 1.1; }
+  .stat-box.gold .value { color: var(--gold); }
+  .stat-box.record .value { color: var(--purple); }
+  .stat-box.stability .value { color: var(--green); }
+  .stat-box.stability.warn .value { color: #f59e0b; }
+  .stat-box.stability.danger .value { color: var(--red); }
+
+  .bar { height: 6px; background: rgba(0,0,0,0.4); border-radius: 4px; margin-top: 8px; overflow: hidden; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, var(--red), #f59e0b, var(--green)); transition: width .3s ease; }
+
+  /* === Эпоха === */
+  .era { padding: 12px; text-align: center; }
+  .era .era-title { font-size: 1rem; font-weight: 700; }
+  .era .era-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+  .era .era-meta { font-size: 0.7rem; color: var(--gold); font-weight: 600; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* === Инвентарь === */
+  .inventory { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .slot { padding: 10px 12px; min-height: 68px; display: flex; flex-direction: column; justify-content: center; background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.1); transition: all 0.2s; }
+  .slot.filled { background: var(--surface); border: 1px solid var(--border); cursor: pointer; }
+  .slot.filled:hover { border-color: var(--gold); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(251,191,36,0.1); }
+  .slot-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .slot-good { font-weight: 700; font-size: 0.9rem; margin-top: 2px; }
+  .slot-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+  .profit { color: var(--green); font-weight: 700; }
+  .loss { color: var(--red); font-weight: 700; }
+
+  /* === Товары === */
+  .goods { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .good { padding: 12px; cursor: pointer; transition: all 0.15s; background: var(--surface); position: relative; overflow: hidden; }
+  .good:hover { background: var(--surface-hover); transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+  .good.selected { border-color: var(--gold); background: rgba(251,191,36,0.05); transform: scale(0.97); box-shadow: inset 0 0 0 1px var(--gold); }
+  .good.dimmed { opacity: 0.5; }
+  .good.rare { border-color: var(--gold); background: linear-gradient(135deg, var(--surface), rgba(251,191,36,0.1)); }
+  .good.rare .good-name { color: var(--gold); }
+  .good-name { font-weight: 700; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+  .good-count { background: rgba(251,191,36,0.2); color: var(--gold); font-size: 0.7rem; padding: 2px 6px; border-radius: 6px; font-weight: 800; }
+  .good-price { font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-top: 6px; }
+  .good-trend { font-size: 0.75rem; font-weight: 600; margin-top: 2px; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+
+  /* === Кнопки === */
+  .actions { display: flex; gap: 8px; }
+  button { font-family: inherit; flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  button:active { transform: scale(0.96); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(0.5); }
+  .btn-buy { background: var(--green); color: #022c22; }
+  .btn-sell { background: var(--gold); color: #422006; }
+  .btn-travel { background: var(--surface); color: var(--text-main); border: 1px solid var(--border); flex: 1.5; }
+  .btn-parallel { background: var(--purple); color: white; flex: 0.6; font-size: 1.2rem; }
+  .btn-buy:hover:not(:disabled), .btn-sell:hover:not(:disabled) { filter: brightness(1.1); }
+  .btn-travel:hover:not(:disabled) { background: var(--surface-hover); }
+  .btn-parallel:hover:not(:disabled) { filter: brightness(1.15); }
+
+  /* === Лог === */
+  .log { padding: 10px 12px; height: 100px; overflow-y: auto; font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); background: rgba(0,0,0,0.15); }
+  .log p { margin-bottom: 2px; display: flex; gap: 6px; }
+  .log .time { color: #4a5468; font-weight: 600; min-width: 22px; }
+  .log .gain { color: var(--green); }
+  .log .loss { color: var(--red); }
+  .log .info { color: var(--gold); }
+
+  /* === Меню/Оверлеи === */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .overlay .panel { padding: 24px; max-width: 400px; width: 100%; max-height: 85vh; overflow-y: auto; background: var(--surface); border-radius: 24px; text-align: center; }
+  .overlay h2 { margin-bottom: 20px; font-size: 1.3rem; font-weight: 800; }
+  .overlay p { color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem; }
+  .hidden { display: none !important; }
+
+  /* === Главное меню === */
+  .main-menu { position: fixed; inset: 0; background: radial-gradient(circle at 50% 30%, #1a1a2e, var(--bg)); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; border: none; box-shadow: none; border-radius: 0; }
+  .main-menu h1 { font-size: 2.8rem; font-weight: 900; text-align: center; line-height: 1.1; background: linear-gradient(135deg, var(--gold), var(--red), var(--purple)); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -1px; margin-bottom: 10px; }
+  .main-menu button { width: 220px; flex: none; padding: 16px; font-size: 1.05rem; border-radius: 14px; }
+  .main-menu .btn-shop { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); }
+  .main-menu .btn-shop:hover { background: rgba(255,255,255,0.1); }
+
+  /* === Магазин === */
+  .shop-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; margin-bottom: 10px; gap: 12px; background: rgba(0,0,0,0.2); }
+  .shop-info { text-align: left; flex: 1; }
+  .shop-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
+  .shop-desc { font-size: 0.8rem; color: var(--text-muted); }
+  .shop-btn { flex: none; width: auto; padding: 8px 16px; font-size: 0.85rem; border-radius: 10px; background: var(--gold); color: #422006; }
+  .shop-btn.owned { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid var(--green); cursor: default; box-shadow: none; }
+
+  /* === Нижняя навигация === */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 72px; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 40; background: rgba(21,26,36,0.95); border-top: 1px solid var(--border); border-radius: 20px 20px 0 0; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: none; border: none; color: var(--text-muted); font-size: 0.65rem; font-weight: 600; gap: 4px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; border-radius: 12px; flex: none; box-shadow: none; }
+  .nav-item span { font-size: 1.4rem; }
+  .nav-item:hover, .nav-item.active { color: var(--gold); background: rgba(251,191,36,0.1); }
+
+  /* === Настройки === */
+  .slider-row { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 14px; border-radius: 14px; margin-bottom: 16px; }
+  .slider-row span { font-size: 1.3rem; }
+  input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+  input[type=range]:focus { outline: none; }
+  input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: rgba(255,255,255,0.1); border-radius: 4px; }
+  input[type=range]::-webkit-slider-thumb { height: 20px; width: 20px; border-radius: 50%; background: var(--gold); cursor: pointer; -webkit-appearance: none; margin-top: -7px; box-shadow: 0 0 10px rgba(251,191,36,0.4); }
+  input[type=range]::-moz-range-track { width: 100%; height: 6px; cursor: pointer; background: rgba(255,255,255,0.1); border-radius: 4px; }
+  input[type=range]::-moz-range-thumb { height: 20px; width: 20px; border-radius: 50%; background: var(--gold); cursor: pointer; border: none; }
+
+  #warpCanvas { position: fixed; inset: 0; pointer-events: none; z-index: 9; opacity: 0; transition: opacity .15s; }
+  #warpCanvas.active { opacity: 1; }
+
+  /* === Мобилки === */
+  @media (max-width: 480px) {
+    body { padding: 8px; padding-bottom: 85px; }
+    .game { gap: 8px; }
+    .stat-box { padding: 8px 10px; }
+    .stat-box .value { font-size: 1.1rem; }
+    .goods { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .good { padding: 10px; }
+    .good-name { font-size: 0.8rem; }
+    .good-price { font-size: 1rem; }
+    .actions { flex-wrap: wrap; }
+    .btn-travel { flex: 100%; order: 3; }
+    .main-menu h1 { font-size: 2rem; }
+    .main-menu button { width: 200px; }
+    .slot { padding: 8px 10px; }
+    .slot-good { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Главное меню -->
+<div class="main-menu" id="mainMenu">
+  <h1>⏳<br>ТОРГОВЕЦ<br>ЭПОХ</h1>
+  <button class="btn-travel" onclick="startGame()">▶ Играть</button>
+  <button class="btn-shop" onclick="openMenu('shop')">🎒 Магазин</button>
+</div>
+
+<canvas id="warpCanvas"></canvas>
+
+<div class="game" id="game" style="display:none;">
+  <div class="era" id="era">
+    <div class="era-title">Загрузка...</div>
+    <div class="era-desc">...</div>
+    <div class="era-meta">...</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box gold" id="statGold">
+      <div class="label">Капитал</div>
+      <div class="value" id="gold">100</div>
+    </div>
+    <div class="stat-box record" id="statRecord">
+      <div class="label">Рекорд</div>
+      <div class="value" id="record">100</div>
+    </div>
+    <div class="stat-box stability" id="statStability">
+      <div class="label">Стабильность</div>
+      <div class="value" id="stability">100%</div>
+      <div class="bar"><div id="stabilityBar"></div></div>
+    </div>
+  </div>
+
+  <div class="inventory" id="inventory"></div>
+  <div class="goods" id="goods"></div>
+
+  <div class="actions">
+    <button class="btn-buy" id="buyBtn" disabled>Купить</button>
+    <button class="btn-sell" id="sellBtn" disabled>Продать</button>
+    <button class="btn-travel" id="travelBtn">Вперед ⏩</button>
+    <button class="btn-parallel" id="parallelBtn">🌀</button>
+  </div>
+
+  <div class="log" id="log"></div>
+</div>
+
+<!-- Нижняя панель -->
+<div class="bottom-nav hidden" id="bottomNav">
+  <button class="nav-item" onclick="openMenu('main')"><span>🏠</span>Главная</button>
+  <button class="nav-item" onclick="openMenu('shop')"><span>🎒</span>Магазин</button>
+  <button class="nav-item" onclick="openMenu('settings')"><span>⚙️</span>Настройки</button>
+</div>
+
+<!-- Настройки -->
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="panel">
+    <h2>⚙️ Настройки</h2>
+    <div class="slider-row">
+      <span id="volumeIcon">🔊</span>
+      <input type="range" id="volumeSlider" min="0" max="100" value="100">
+    </div>
+    <button class="btn-sell" onclick="closeOverlays()" style="width:100%;">Закрыть</button>
+  </div>
+</div>
+
+<!-- Магазин -->
+<div class="overlay hidden" id="shopOverlay">
+  <div class="panel">
+    <h2>🎒 Магазин</h2>
+    <p style="font-size: 0.8rem; margin-bottom: 16px;">Больше слотов — больше товаров.</p>
+    <div id="shopItems"></div>
+    <button class="btn-sell" onclick="closeOverlays()" style="width:100%; margin-top:10px;">Закрыть</button>
+  </div>
+</div>
+
+<!-- Финал -->
+<div class="overlay hidden" id="overlay">
+  <div class="panel">
+    <h2 id="ovTitle">Конец</h2>
+    <p id="ovText"></p>
+    <p class="record-line" id="ovRecord" style="color: var(--purple); font-weight: 800; font-size: 1.1rem;"></p>
+    <button class="btn-buy" onclick="location.reload()" style="width:100%; margin-top:20px;">Играть снова</button>
+  </div>
+</div>
+
+<script>/* ============================================================
+   НАСТРОЙКИ И ЗВУК
+   ============================================================ */
+const Settings = {
+  volume: 1.0,
+  load() {
+    try {
+      const v = localStorage.getItem("eraTrader.volume");
+      if (v !== null) this.volume = Number(v);
+      if (isNaN(this.volume)) this.volume = 1.0;
+    } catch {}
+    const slider = document.getElementById("volumeSlider");
+    if (slider) slider.value = this.volume * 100;
+    this.updateIcon();
+  },
+  save() { try { localStorage.setItem("eraTrader.volume", this.volume); } catch {} },
+  set(v) { this.volume = v / 100; this.updateIcon(); this.save(); },
+  updateIcon() {
+    const icon = document.getElementById("volumeIcon");
+    if (icon) icon.textContent = this.volume === 0 ? "🔇" : this.volume < 0.5 ? "🔉" : "🔊";
+  }
+};
+Settings.load();
+
+const Sound = (() => {
+  let ctx = null;
+  function init() {
+    if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) ctx = new AC(); }
+    if (ctx && ctx.state === "suspended") ctx.resume();
+  }
+  function tone(freq, dur, type = "sine", vol = 0.15, slideTo = null) {
+    if (Settings.volume === 0) return;
+    if (!ctx) init(); if (!ctx) return;
+    const t = ctx.currentTime, osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol * Settings.volume, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t); osc.stop(t + dur + 0.02);
+  }
+  return {
+    click() { init(); tone(660, 0.06, "square", 0.08); },
+    buy() { init(); tone(520, 0.12, "triangle", 0.18); setTimeout(() => tone(780, 0.15, "triangle", 0.15), 80); },
+    sell() { init(); tone(780, 0.1, "sine", 0.18); setTimeout(() => tone(1040, 0.18, "sine", 0.15), 70); },
+    error() { init(); tone(180, 0.2, "sawtooth", 0.12); },
+    warp() { init(); tone(200, 0.6, "sawtooth", 0.12, 1200); },
+    win() { init(); [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.25, "triangle", 0.18), i * 120)); },
+    lose() { init(); [400, 300, 200, 100].forEach((f, i) => setTimeout(() => tone(f, 0.3, "sawtooth", 0.15), i * 130)); }
+  };
+})();
+
+/* ============================================================
+   ДАННЫЕ
+   ============================================================ */
+const MAIN_ERAS = [
+  { name: "Каменный век", desc: "Всё дёшево, но продать некому...", mult: 0.5 },
+  { name: "Древний Египет", desc: "Фараоны, пирамиды и золото.", mult: 0.8 },
+  { name: "Античность", desc: "Расцвет торговли и амфор.", mult: 1.0 },
+  { name: "Средневековье", desc: "Гильдии, ярмарки, чума.", mult: 1.3 },
+  { name: "Индустриальная эпоха", desc: "Пар, сталь, конвейер.", mult: 1.8 },
+  { name: "Будущее", desc: "Нанотехнологии и сингулярность.", mult: 2.6 },
+  { name: "Киберпанк", desc: "Хакеры, импланты, корпорации.", mult: 3.5 },
+];
+
+const PARALLEL_WORLDS = [
+  { name: "Мир Магии", desc: "Зелья, посохи и драконы.",
+    eras: [
+      { name: "Эра Драконов", desc: "Драконы правят небесами.", mult: 1.2 },
+      { name: "Эра Эльфов", desc: "Лесные тропы и лук.", mult: 1.5 },
+      { name: "Эра Гномов", desc: "Подземные кузни.", mult: 1.8 },
+      { name: "Эра Магов", desc: "Башни и заклинания.", mult: 2.2 },
+      { name: "Эра Титанов", desc: "Гиганты сотрясают землю.", mult: 2.7 },
+      { name: "Эра Богов", desc: "Смертные взирают в небо.", mult: 3.3 },
+      { name: "Эра Хаоса", desc: "Магия вышла из-под контроля.", mult: 4.0 },
+    ] },
+  { name: "Стимпанк", desc: "Пар, шестерёнки и дирижабли.",
+    eras: [
+      { name: "Эра Пара", desc: "Первые паровые машины.", mult: 1.3 },
+      { name: "Эра Шестерёнок", desc: "Механизмы повсюду.", mult: 1.7 },
+      { name: "Эра Дирижаблей", desc: "Небо принадлежит людям.", mult: 2.1 },
+      { name: "Эра Заводов", desc: "Дым закрывает солнце.", mult: 2.5 },
+      { name: "Эра Автоматонов", desc: "Механические люди.", mult: 3.0 },
+      { name: "Эра Хронопортов", desc: "Время — это товар.", mult: 3.6 },
+      { name: "Эра Великой Машины", desc: "Мир — гигантский механизм.", mult: 4.3 },
+    ] },
+  { name: "Постапокалипсис", desc: "Вода — валюта, металл — золото.",
+    eras: [
+      { name: "День Катастрофы", desc: "Всё началось.", mult: 1.0 },
+      { name: "Эра Пыли", desc: "Города под песком.", mult: 1.4 },
+      { name: "Эра Мутантов", desc: "Новые правила.", mult: 1.9 },
+      { name: "Эра Выживших", desc: "Поселения поднимаются.", mult: 2.4 },
+      { name: "Эра Рейдеров", desc: "Кто сильнее — тот прав.", mult: 2.9 },
+      { name: "Эра Возрождения", desc: "Из пепла рождается новое.", mult: 3.5 },
+      { name: "Новая Цивилизация", desc: "Мир снова цветёт.", mult: 4.2 },
+    ] },
+  { name: "Космическая эра", desc: "Торговля с другими планетами.",
+    eras: [
+      { name: "Эра Запуска", desc: "Первые ракеты.", mult: 1.5 },
+      { name: "Эра Орбиты", desc: "Станции на орбите.", mult: 1.9 },
+      { name: "Эра Луны", desc: "Колонии на спутнике.", mult: 2.3 },
+      { name: "Эра Марса", desc: "Красная планета.", mult: 2.8 },
+      { name: "Пояс Астероидов", desc: "Рудники в космосе.", mult: 3.3 },
+      { name: "Дальние Миры", desc: "Прыжки между звёздами.", mult: 3.9 },
+      { name: "Галактическая Империя", desc: "Вселенная как рынок.", mult: 4.6 },
+    ] },
+  { name: "Мир Динозавров", desc: "Выживает сильнейший.",
+    eras: [
+      { name: "Триасовый период", desc: "Мир просыпается.", mult: 0.9 },
+      { name: "Юрский период", desc: "Гиганты правят.", mult: 1.2 },
+      { name: "Меловой период", desc: "Цветы и хищники.", mult: 1.6 },
+      { name: "Эра Птеродактилей", desc: "Небо в опасности.", mult: 2.0 },
+      { name: "Морские Ящеры", desc: "Океаны кишат жизнью.", mult: 2.5 },
+      { name: "Эра Мегафауны", desc: "Всё огромное.", mult: 3.1 },
+      { name: "Падение Метеорита", desc: "Конец эпохи.", mult: 3.8 },
+    ] },
+  { name: "Альтернативный 21 век", desc: "Здесь всё пошло не так.",
+    eras: [
+      { name: "Эра Пандемий", desc: "Мир на карантине.", mult: 1.4 },
+      { name: "Эра Корпораций", desc: "Государства ушли.", mult: 1.8 },
+      { name: "Эра ИИ", desc: "Машины решают всё.", mult: 2.2 },
+      { name: "Эра Виртуальности", desc: "Реальность — опция.", mult: 2.7 },
+      { name: "Эра Климата", desc: "Планета бьёт в ответ.", mult: 3.2 },
+      { name: "Эра Колоний", desc: "Экспансия началась.", mult: 3.8 },
+      { name: "Эра Сингулярности", desc: "Человек становится богом.", mult: 4.5 },
+    ] },
+];
+
+const GOODS = [
+  { id: "herbs",  name: "Травы",     base: 8  },
+  { id: "cloth",  name: "Ткани",     base: 15 },
+  { id: "spice",  name: "Специи",    base: 22 },
+  { id: "weapon", name: "Оружие",    base: 35 },
+  { id: "gems",   name: "Самоцветы", base: 55 },
+  { id: "relic",  name: "Реликвия",  base: 80 },
+];
+
+const RARE_GOOD = { id: "feather", name: "Гусиное перо", base: 250 };
+
+const SHOP_ITEMS = [
+  { id: "bag1", name: "Мешок", slots: 3, price: 150, desc: "Вмещает 3 товара" },
+  { id: "bag2", name: "Рюкзак", slots: 4, price: 400, desc: "Вмещает 4 товара" },
+  { id: "bag3", name: "Сумка торговца", slots: 5, price: 900, desc: "Вмещает 5 товаров" },
+  { id: "bag4", name: "Пространственный карман", slots: 6, price: 2000, desc: "Вмещает 6 товаров" },
+];
+
+const WIN_GOLD = 10000, RECORD_KEY = "eraTrader.record", BAG_KEY = "eraTrader.bag";
+const Store = {
+  get(key, fallback) {
+    try { const v = localStorage.getItem(key); return v !== null && !isNaN(Number(v)) ? Number(v) : fallback; } catch { return fallback; }
+  },
+  set(key, value) { try { localStorage.setItem(key, String(value)); } catch {} },
+  getStr(key, fallback) {
+    try { const v = localStorage.getItem(key); return v !== null ? v : fallback; } catch { return fallback; }
+  }
+};
+function loadRecord() { return Store.get(RECORD_KEY, 100); }
+function saveRecord(v) { if (typeof v === 'number') Store.set(RECORD_KEY, v); }
+function loadBag() { return Store.getStr(BAG_KEY, ""); }
+function saveBag(id) { try { localStorage.setItem(BAG_KEY, id); } catch {} }
+
+function getMaxSlots() {
+  const bagId = loadBag();
+  if (!bagId) return 2;
+  const bag = SHOP_ITEMS.find(b => b.id === bagId);
+  return bag ? bag.slots : 2;
+}
+
+/* ============================================================
+   СОСТОЯНИЕ
+   ============================================================ */
+let state;
+function resetState() {
+  state = { 
+    gold: 100, stability: 100, 
+    eraIndex: 0, inParallel: false, parallelIndex: 0,
+    inventory: [], selected: null, 
+    prices: {}, events: [], turn: 0, 
+    over: false, warping: false, hasRare: false 
+  };
+  rollPrices();
+}
+
+function getCurrentEraList() {
+  if (state.inParallel) return PARALLEL_WORLDS[state.parallelIndex].eras;
+  return MAIN_ERAS;
+}
+
+function getCurrentWorld() { return getCurrentEraList()[state.eraIndex]; }
+function getWorldName() { return state.inParallel ? PARALLEL_WORLDS[state.parallelIndex].name : "Основной мир"; }
+function eraMult() { return getCurrentWorld().mult; }
+
+function rollPrices() {
+  state.prices = {};
+  for (const g of GOODS) {
+    let price = g.base * eraMult() * (0.6 + Math.random() * 0.9);
+    for (const ev of state.events) if (ev.good === g.id) price *= ev.mult;
+    state.prices[g.id] = Math.max(1, Math.round(price));
+  }
+  
+  state.hasRare = false;
+  if (!state.inParallel && state.eraIndex === 0 && Math.random() < 0.10) {
+    state.hasRare = true;
+    state.prices[RARE_GOOD.id] = Math.round(RARE_GOOD.base * (0.8 + Math.random() * 0.5));
+  }
+}
+
+function rollEvent() {
+  const pool = [
+    { text: "Вспышка чумы — травы в цене!", good: "herbs", mult: 2.2 },
+    { text: "Война — оружие дорожает!", good: "weapon", mult: 2.0 },
+    { text: "Мода на специи!", good: "spice", mult: 1.8 },
+    { text: "Найдена шахта — самоцветы дешевеют.", good: "gems", mult: 0.5 },
+    { text: "Пираты на торговых путях — ткани дорожают.", good: "cloth", mult: 1.7 },
+  ];
+  const ev = pool[Math.floor(Math.random() * pool.length)];
+  state.events = [ev]; log(ev.text, "info");
+}
+
+/* ============================================================
+   МАГАЗИН
+   ============================================================ */
+function renderShop() {
+  const container = document.getElementById("shopItems");
+  if (!container) return;
+  container.innerHTML = "";
+  const currentBagId = loadBag();
+  
+  SHOP_ITEMS.forEach(item => {
+    const isOwned = currentBagId === item.id;
+    const currentIdx = SHOP_ITEMS.findIndex(b => b.id === currentBagId);
+    const thisIdx = SHOP_ITEMS.findIndex(b => b.id === item.id);
+    const isBetterOwned = currentIdx >= thisIdx && !isOwned;
+
+    const div = document.createElement("div");
+    div.className = "shop-item";
+    div.innerHTML = `
+      <div class="shop-info">
+        <div class="shop-name">${item.name}</div>
+        <div class="shop-desc">${item.desc}</div>
+      </div>
+      <button class="shop-btn ${isOwned ? 'owned' : ''}" ${isOwned || isBetterOwned ? 'disabled' : ''}>
+        ${isOwned ? '✓' : (isBetterOwned ? '—' : item.price + ' 💰')}
+      </button>
+    `;
+    if (!isOwned && !isBetterOwned) {
+      div.querySelector("button").onclick = () => buyBag(item);
+    }
+    container.appendChild(div);
+  });
+}
+
+function buyBag(item) {
+  if (state.gold < item.price) { Sound.error(); log("Недостаточно капитала!", "loss"); return; }
+  state.gold -= item.price;
+  saveBag(item.id);
+  Sound.buy();
+  log(`Куплен ${item.name}! Доступно ${item.slots} слота.`, "gain");
+  renderShop(); render();
+}
+
+/* ============================================================
+   ДЕЙСТВИЯ
+   ============================================================ */
+function selectGood(id) {
+  if (state.over || state.warping) return;
+  if (state.selected === id) { buy(); return; }
+  Sound.click();
+  if (state.inventory.length >= getMaxSlots()) { state.selected = null; render(); return; }
+  state.selected = id; render();
+}
+
+function buy() {
+  if (state.over || state.warping || !state.selected) return;
+  if (state.inventory.length >= getMaxSlots()) return;
+  if (state.selected === RARE_GOOD.id && (state.inParallel || state.eraIndex !== 0)) return;
+
+  const price = state.prices[state.selected];
+  if (!price) return;
+  if (state.gold < price) { Sound.error(); log("Недостаточно капитала!", "loss"); return; }
+  
+  state.gold -= price;
+  state.inventory.push({ goodId: state.selected, buyPrice: price });
+  Sound.buy(); 
+  log(`Куплено: ${goodName(state.selected)} за ${price}`, "info");
+  state.selected = null; 
+  render();
+}
+
+function sell() {
+  if (state.over || state.warping || state.inventory.length === 0) return;
+  let totalProfit = 0, totalRevenue = 0; const sold = [];
+  for (const item of state.inventory) {
+    const sellPrice = state.prices[item.goodId] ?? item.buyPrice;
+    const profit = sellPrice - item.buyPrice;
+    totalRevenue += sellPrice; totalProfit += profit;
+    sold.push({ ...item, sellPrice, profit });
+  }
+  state.gold += totalRevenue; state.inventory = [];
+  for (const s of sold) {
+    if (s.profit > 0) log(`Продано: ${goodName(s.goodId)} за ${s.sellPrice} (+${s.profit})`, "gain");
+    else log(`Продано: ${goodName(s.goodId)} за ${s.sellPrice} (${s.profit})`, "loss");
+  }
+  Sound.sell();
+  const risk = Math.min(25, Math.abs(totalProfit) / 5);
+  if (Math.random() * 100 < risk) {
+    const dmg = 5 + Math.floor(Math.random() * 11); state.stability -= dmg;
+    log(`⚡ Парадокс! Временная линия пострадала (-${dmg}%)`, "loss");
+  }
+  checkEnd(); render();
+}
+
+function sellSlot(index) {
+  if (state.over || state.warping) return;
+  const item = state.inventory[index];
+  if (!item) return;
+
+  const sellPrice = state.prices[item.goodId] ?? item.buyPrice;
+  const profit = sellPrice - item.buyPrice;
+  state.gold += sellPrice;
+  state.inventory.splice(index, 1);
+  
+  if (profit > 0) log(`Продано: ${goodName(item.goodId)} за ${sellPrice} (+${profit})`, "gain");
+  else log(`Продано: ${goodName(item.goodId)} за ${sellPrice} (${profit})`, "loss");
+  
+  Sound.sell();
+  const risk = Math.min(25, Math.abs(profit) / 5);
+  if (Math.random() * 100 < risk) {
+    const dmg = 5 + Math.floor(Math.random() * 11); 
+    state.stability -= dmg;
+    log(`⚡ Парадокс! Временная линия пострадала (-${dmg}%)`, "loss");
+  }
+  checkEnd(); render();
+}
+
+function travel() {
+  if (state.over || state.warping) return;
+  state.warping = true; state.turn++; state.stability -= 1;
+  const eraList = getCurrentEraList();
+  state.eraIndex = (state.eraIndex + 1) % eraList.length;
+  state.events = []; if (Math.random() < 0.55) rollEvent(); 
+  rollPrices();
+  Sound.warp();
+  runWarpAnimation(() => { state.warping = false; checkEnd(); render(); });
+}
+
+function jumpParallel() {
+  if (state.over || state.warping) return;
+  state.warping = true; state.turn++; state.stability -= 3;
+  
+  if (state.inParallel) {
+    state.inParallel = false; state.eraIndex = 0;
+    log("Возвращение в основной мир.", "info");
+  } else {
+    state.inParallel = true;
+    state.parallelIndex = Math.floor(Math.random() * PARALLEL_WORLDS.length);
+    state.eraIndex = 0;
+    log(`Прыжок: ${PARALLEL_WORLDS[state.parallelIndex].name}!`, "info");
+  }
+  
+  state.events = []; if (Math.random() < 0.55) rollEvent(); 
+  rollPrices();
+  Sound.warp();
+  runWarpAnimation(() => { state.warping = false; checkEnd(); render(); });
+}
+
+function checkEnd() {
+  if (state.over) return;
+  const rec = Math.max(loadRecord(), state.gold);
+  if (state.gold > loadRecord()) saveRecord(state.gold);
+  if (state.stability <= 0) {
+    state.stability = 0; state.over = true; Sound.lose();
+    showOverlay("⏳ Время не прощает", `Итоговый капитал: ${state.gold}.`, `Рекорд: ${rec}`);
+  } else if (state.gold >= WIN_GOLD) {
+    state.over = true; Sound.win();
+    showOverlay("🏆 Торговец Эпох!", `Ты сколотил ${state.gold} монет!`, `Рекорд: ${rec}`);
+  }
+}
+
+/* ============================================================
+   АНИМАЦИЯ
+   ============================================================ */
+const warpCanvas = document.getElementById("warpCanvas"), wctx = warpCanvas.getContext("2d");
+let warpRAF = null;
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  warpCanvas.width = window.innerWidth * dpr; warpCanvas.height = window.innerHeight * dpr;
+  warpCanvas.style.width = window.innerWidth + "px"; warpCanvas.style.height = window.innerHeight + "px";
+  wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", resizeCanvas); resizeCanvas();
+function runWarpAnimation(onDone) {
+  const game = document.getElementById("game");
+  game.classList.remove("warping"); void game.offsetWidth; game.classList.add("warping");
+  warpCanvas.classList.add("active");
+  const W = window.innerWidth, H = window.innerHeight, cx = W / 2, cy = H / 2;
+  const start = performance.now(), DURATION = 650, streaks = [];
+  for (let i = 0; i < 70; i++) streaks.push({ angle: Math.random() * Math.PI * 2, radius: 40 + Math.random() * 80, speed: 8 + Math.random() * 14, length: 20 + Math.random() * 60, width: 1 + Math.random() * 2.5, hue: Math.random() < 0.5 ? "#fbbf24" : "#ef4444", alpha: 0.6 + Math.random() * 0.4 });
+  function frame(now) {
+    const t = Math.min(1, (now - start) / DURATION);
+    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    wctx.clearRect(0, 0, W, H);
+    wctx.fillStyle = `rgba(11,14,20,${Math.sin(t * Math.PI) * 0.25})`; wctx.fillRect(0, 0, W, H);
+    for (const s of streaks) {
+      s.radius += s.speed * (1 + ease * 3);
+      const x1 = cx + Math.cos(s.angle) * s.radius, y1 = cy + Math.sin(s.angle) * s.radius;
+      const x2 = cx + Math.cos(s.angle) * (s.radius + s.length * (1 + ease * 2)), y2 = cy + Math.sin(s.angle) * (s.radius + s.length * (1 + ease * 2));
+      wctx.strokeStyle = s.hue; wctx.globalAlpha = s.alpha * (1 - t * 0.7); wctx.lineWidth = s.width; wctx.lineCap = "round";
+      wctx.beginPath(); wctx.moveTo(x1, y1); wctx.lineTo(x2, y2); wctx.stroke();
+    }
+    wctx.globalAlpha = 1;
+    if (t < 1) { warpRAF = requestAnimationFrame(frame); }
+    else { wctx.clearRect(0, 0, W, H); warpCanvas.classList.remove("active"); game.classList.remove("warping"); if (onDone) onDone(); }
+  }
+  cancelAnimationFrame(warpRAF); warpRAF = requestAnimationFrame(frame);
+}
+
+/* ============================================================
+   РЕНДЕР
+   ============================================================ */
+function goodName(id) { 
+  if (id === RARE_GOOD.id) return RARE_GOOD.name;
+  const g = GOODS.find(x => x.id === id); return g ? g.name : id; 
+}
+
+function log(text, cls = "") {
+  const el = document.getElementById("log"); if (!el) return;
+  const p = document.createElement("p");
+  p.innerHTML = `<span class="time">[${state.turn}]</span><span class="${cls}">${text}</span>`;
+  el.appendChild(p); el.scrollTop = el.scrollHeight;
+}
+
+function render() {
+  document.getElementById("gold").textContent = state.gold;
+  const rec = Math.max(loadRecord(), state.gold);
+  document.getElementById("record").textContent = rec;
+  
+  const st = document.getElementById("stability");
+  st.textContent = state.stability + "%";
+  const statSt = document.getElementById("statStability");
+  statSt.className = "stat-box stability " + (state.stability <= 25 ? "danger" : state.stability <= 50 ? "warn" : "");
+  document.getElementById("stabilityBar").style.width = Math.max(0, state.stability) + "%";
+  
+  const world = getCurrentWorld();
+  const worldName = getWorldName();
+  const eraList = getCurrentEraList();
+  document.getElementById("era").innerHTML = `
+    <div class="era-title">${world.name}</div>
+    <div class="era-desc">${world.desc}</div>
+    <div class="era-meta">${worldName} • Эпоха ${state.eraIndex + 1}/${eraList.length}</div>
+  `;
+  
+  const maxSlots = getMaxSlots();
+  const invEl = document.getElementById("inventory");
+  invEl.innerHTML = "";
+  
+  for (let i = 0; i < maxSlots; i++) {
+    const item = state.inventory[i];
+    const slotEl = document.createElement("div");
+    if (item) {
+      const cur = state.prices[item.goodId] || item.buyPrice, profit = cur - item.buyPrice;
+      const cls = profit >= 0 ? "profit" : "loss", sign = profit >= 0 ? "+" : "";
+      slotEl.className = "slot filled";
+      slotEl.innerHTML = `<div class="slot-label">Слот ${i + 1}</div><div class="slot-good">${goodName(item.goodId)}</div><div class="slot-meta">${item.buyPrice} → ${cur} <span class="${cls}">(${sign}${profit})</span></div>`;
+      if (!state.over) slotEl.onclick = () => sellSlot(i);
+    } else {
+      slotEl.className = "slot";
+      slotEl.innerHTML = `<div class="slot-label">Слот ${i + 1}</div><div class="slot-meta" style="margin-top:4px;">Пусто</div>`;
+    }
+    invEl.appendChild(slotEl);
+  }
+  
+  const goodsEl = document.getElementById("goods"); goodsEl.innerHTML = "";
+  const invFull = state.inventory.length >= maxSlots;
+  
+  for (const g of GOODS) {
+    const price = state.prices[g.id]; if (price == null) continue;
+    const isSelected = state.selected === g.id, inInvCount = state.inventory.filter(it => it.goodId === g.id).length;
+    const base = g.base * eraMult(), ratio = base > 0 ? Math.round((price / base) * 100) : 100;
+    const trendCls = price >= base ? "up" : "down", trendTxt = price >= base ? "▲" : "▼";
+    const div = document.createElement("div");
+    div.className = "good" + (isSelected ? " selected" : "") + (invFull ? " dimmed" : "");
+    div.innerHTML = `
+      <div class="good-name">${g.name}${inInvCount ? `<span class="good-count">×${inInvCount}</span>` : ""}</div>
+      <div class="good-price">${price} 💰</div>
+      <div class="good-trend ${trendCls}">${trendTxt} ${ratio}%</div>
+    `;
+    if (!state.over) div.onclick = () => selectGood(g.id);
+    goodsEl.appendChild(div);
+  }
+
+  if (state.hasRare) {
+    const price = state.prices[RARE_GOOD.id];
+    const isSelected = state.selected === RARE_GOOD.id;
+    const inInvCount = state.inventory.filter(it => it.goodId === RARE_GOOD.id).length;
+    const div = document.createElement("div");
+    div.className = "good rare" + (isSelected ? " selected" : "") + (invFull ? " dimmed" : "");
+    div.innerHTML = `
+      <div class="good-name">✨ ${RARE_GOOD.name}${inInvCount ? `<span class="good-count">×${inInvCount}</span>` : ""}</div>
+      <div class="good-price" style="color: var(--gold);">${price} 💰</div>
+      <div class="good-trend up">🔥 Легендарка</div>
+    `;
+    if (!state.over) div.onclick = () => selectGood(RARE_GOOD.id);
+    goodsEl.appendChild(div);
+  }
+  
+  const buyBtn = document.getElementById("buyBtn");
+  if (invFull) { buyBtn.textContent = "Сумка полна"; buyBtn.disabled = true; }
+  else if (state.selected) {
+    const price = state.prices[state.selected] || 0;
+    buyBtn.textContent = `Купить ${price}`; buyBtn.disabled = state.gold < price || state.over || state.warping;
+  } else { buyBtn.textContent = "Выбери товар"; buyBtn.disabled = true; }
+  
+  const sellBtn = document.getElementById("sellBtn");
+  if (state.inventory.length === 0) { sellBtn.textContent = "Продать"; sellBtn.disabled = true; }
+  else {
+    const total = state.inventory.reduce((s, it) => s + (state.prices[it.goodId] || 0), 0);
+    sellBtn.textContent = `Продать (+${total})`; sellBtn.disabled = state.over || state.warping;
+  }
+  
+  document.getElementById("travelBtn").disabled = state.over || state.warping;
+  const parBtn = document.getElementById("parallelBtn");
+  parBtn.disabled = state.over || state.warping;
+  parBtn.textContent = state.inParallel ? "🌍" : "🌀";
+}
+
+function showOverlay(title, text, record) {
+  document.getElementById("ovTitle").textContent = title; 
+  document.getElementById("ovText").textContent = text;
+  document.getElementById("ovRecord").textContent = record || ""; 
+  document.getElementById("overlay").classList.remove("hidden");
+}
+
+/* ============================================================
+   ЗАПУСК
+   ============================================================ */
+function startGame() {
+  document.getElementById("mainMenu").style.display = "none";
+  document.getElementById("game").style.display = "flex";
+  document.getElementById("bottomNav").classList.remove("hidden");
+  resetState();
+  log("Нажми на товар 1 раз, затем 2-й раз чтобы купить.", "info");
+  render();
+}
+
+function openMenu(menu) {
+  closeOverlays();
+  if (menu === 'main') {
+    document.getElementById("mainMenu").style.display = "flex";
+    document.getElementById("bottomNav").classList.add("hidden");
+  } else if (menu === 'shop') {
+    document.getElementById("shopOverlay").classList.remove("hidden");
+    renderShop();
+  } else if (menu === 'settings') {
+    document.getElementById("settingsOverlay").classList.remove("hidden");
+  }
+}
+
+function closeOverlays() {
+  document.getElementById("settingsOverlay").classList.add("hidden");
+  document.getElementById("shopOverlay").classList.add("hidden");
+}
+
+document.getElementById("buyBtn").onclick = buy;
+document.getElementById("sellBtn").onclick = sell;
+document.getElementById("travelBtn").onclick = travel;
+document.getElementById("parallelBtn").onclick = jumpParallel;
+
+document.getElementById("volumeSlider").oninput = (e) => {
+  Settings.set(e.target.value);
+  Sound.click();
+};
+</script>
+</body>
+</html>
