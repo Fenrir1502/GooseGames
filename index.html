@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goose Games</title>
+    
+    <!-- Иконка на вкладке браузера -->
+    <link rel="icon" type="image/png" href="goose-logo.png">
+    
     <style>
         * {
             box-sizing: border-box;
@@ -22,6 +26,18 @@
             text-align: center;
             padding: 20px;
         }
+
+        /* Стиль для гуся */
+        .goose-logo {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%; /* Делает картинку круглой, как аватарку */
+            border: 3px solid #ffd700; /* Золотая рамка */
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); /* Золотое свечение */
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+
         h1 {
             color: #ffd700;
             font-size: 2.5em;
@@ -77,6 +93,9 @@
     </style>
 </head>
 <body>
+    <!-- Вставляем картинку гуся -->
+    <img src="goose-logo.png" alt="Goose Games" class="goose-logo">
+
     <h1>Goose Games</h1>
     <p>Выбирай игру:</p>
     
