@@ -27,81 +27,121 @@
             padding: 20px;
         }
 
-        /* Стиль для гуся */
+        /* Стиль для главного гуся */
         .goose-logo {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%; /* Делает картинку круглой, как аватарку */
-            border: 3px solid #ffd700; /* Золотая рамка */
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); /* Золотое свечение */
-            margin-bottom: 20px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            margin-bottom: 15px;
             object-fit: cover;
         }
 
         h1 {
             color: #ffd700;
             font-size: 2.5em;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
+        
         p {
             color: #aaa;
             font-size: 1.1em;
             margin-bottom: 30px;
         }
-        .btn {
-            display: block;
+
+        /* Сетка для иконок (2 колонки) */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             width: 100%;
-            max-width: 320px;
-            margin: 15px auto;
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            color: white;
-        }
-        .btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* Казино (Розовый/Неон) */
-        .btn-casino {
-            background: linear-gradient(135deg, #ff0066, #cc0044);
-            box-shadow: 0 5px 15px rgba(255, 0, 102, 0.4);
-        }
-        
-        /* Жизнь (Салатовый, черный текст) */
-        .btn-life {
-            background: linear-gradient(135deg, #00ff88, #009944);
-            color: #000;
-            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
-        }
-        
-        /* Торговец Эпох (Синий) */
-        .btn-trader {
-            background: linear-gradient(135deg, #00aaff, #0066cc);
-            box-shadow: 0 5px 15px rgba(0, 170, 255, 0.4);
+            max-width: 420px;
+            margin-top: 10px;
         }
 
-        /* Фотосинтез (Темно-зеленый) */
-        .btn-photo {
-            background: linear-gradient(135deg, #228B22, #006400);
-            box-shadow: 0 5px 15px rgba(34, 139, 34, 0.4);
+        /* Стиль самой иконки */
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.15s ease-out;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .app-icon img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 22%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            border: 2px solid rgba(255, 215, 0, 0.15);
+            transition: filter 0.15s;
+        }
+
+        .app-icon span {
+            font-size: 0.95em;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* Эффект при нажатии (для телефонов) */
+        .app-icon:active {
+            transform: scale(0.90);
+        }
+        
+        .app-icon:active img {
+            filter: brightness(0.7);
+        }
+
+        /* Эффект при наведении (для компьютеров) */
+        @media (hover: hover) {
+            .app-icon:hover {
+                transform: translateY(-5px);
+            }
+            .app-icon:hover img {
+                border-color: rgba(255, 215, 0, 0.8);
+                box-shadow: 0 12px 25px rgba(255, 215, 0, 0.2);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Вставляем картинку гуся -->
+    <!-- Главный логотип -->
     <img src="goose-logo.png" alt="Goose Games" class="goose-logo">
 
     <h1>Goose Games</h1>
     <p>Выбирай игру:</p>
     
-    <a href="casino.html" class="btn btn-casino">🎰 Казино</a>
-    <a href="life.html" class="btn btn-life">🧬 Жизнь</a>
-    <a href="EraTrader.html" class="btn btn-trader">⏳ Торговец Эпох</a>
-    <a href="photosynthesis.html" class="btn btn-photo">🌿 Фотосинтез</a>
+    <!-- Сетка с играми -->
+    <div class="icon-grid">
+        
+        <a href="casino.html" class="app-icon">
+            <img src="casino-icon.png" alt="Казино">
+            <span>Казино</span>
+        </a>
+
+        <a href="life.html" class="app-icon">
+            <img src="life-icon.png" alt="Жизнь">
+            <span>Жизнь</span>
+        </a>
+
+        <a href="EraTrader.html" class="app-icon">
+            <img src="trader-icon.png" alt="Торговец Эпох">
+            <span>Торговец Эпох</span>
+        </a>
+
+        <a href="photosynthesis.html" class="app-icon">
+            <img src="photosynthesis-icon.png" alt="Фотосинтез">
+            <span>Фотосинтез</span>
+        </a>
+
+    </div>
 </body>
 </html>
