@@ -4160,9 +4160,12 @@
       b.classList.toggle('active', parseFloat(b.dataset.mult) === upgradeMult);
       b.disabled = upgradeSpinning;
     });
-    // Зелёная зона от 0° по часовой
+    // Зелёная зона — сверху (0° = 12 часов), по часовой; красная — снизу
     const greenDeg = 360 * (chance / 100);
-    upgradeEl.fill.style.background = `conic-gradient(from 0deg, #00ff88 0deg, #00ff88 ${greenDeg}deg, #ff4466 ${greenDeg}deg, #ff4466 360deg)`;
+    upgradeEl.fill.style.background =
+      `conic-gradient(from 0deg, ` +
+      `#00ff88 0deg, #00ff88 ${greenDeg}deg, ` +
+      `#ff4466 ${greenDeg}deg, #ff4466 360deg)`;
   }
 
   async function playUpgrade() {
@@ -4177,12 +4180,16 @@
     // Определяем победу
     const isWin = Math.random() * 100 < chance;
 
-    // Угол, куда должна попасть стрелка (0° — верх, по часовой)
+    // Указатель при rotate(0) смотрит вниз из верхней точки колеса,
+    // т.е. "показывает" на 0° (верх). Значит, чтобы указать на угол α
+    // (от верха по часовой), обёртку надо повернуть на α.
     const greenDeg = (chance / 100) * 360;
     let targetAngle;
     if (isWin) {
+      // Попадаем строго в зелёную зону: 0°..greenDeg
       targetAngle = Math.random() * greenDeg;
     } else {
+      // Попадаем строго в красную зону: greenDeg..360°
       targetAngle = greenDeg + Math.random() * (360 - greenDeg);
     }
 
@@ -4192,15 +4199,9 @@
     void upgradeEl.pointerWrap.offsetWidth;
     upgradeEl.pointerWrap.style.transition = 'transform 2.5s cubic-bezier(0.1, 0.7, 0.1, 1)';
 
-    // Стрелка смотрит вниз (180°). 
-    // Чтобы она указала на targetAngle (0 - верх, по часовой), 
-    // нужно повернуть её так, чтобы вектор "вниз" совпал с targetAngle.
-    // Вращение: (targetAngle - 180) по модулю 360.
-    // Но так как мы крутим по часовой, а вектор "вниз" - это 180°, 
-    // финальный угол = (targetAngle + 180) % 360.
-    // Всё верно, это даёт ровное попадание.
+    // Крутим по часовой: несколько полных оборотов + точный доворот до targetAngle
     const spins = 4 + Math.floor(Math.random() * 3);
-    const finalRotation = spins * 360 + ((targetAngle + 180) % 360);
+    const finalRotation = spins * 360 + targetAngle;
     upgradeEl.pointerWrap.style.transform = `rotate(${finalRotation}deg)`;
 
     await sleep(2600);
