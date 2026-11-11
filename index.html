@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#05000d">
+    <title>Goose Games</title>
+    <link rel="icon" type="image/png" href="goose-logo.png">
+    <link rel="apple-touch-icon" href="goose-logo.png">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #05000d; color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh; min-height: 100dvh;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            overflow-x: hidden;
+        }
+        .goose-logo {
+            width: 140px; height: 140px; border-radius: 50%;
+            border: 3px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            margin-bottom: 15px; object-fit: cover; animation: floatLogo 4s ease-in-out infinite;
+        }
+        @keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        h1 { color: #ffd700; font-size: 2.5em; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.3); letter-spacing: 2px; }
+        p { color: #aaa; font-size: 1.1em; margin-bottom: 25px; }
+        
+        .icon-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            width: 100%; max-width: 420px; margin-top: 10px; margin-bottom: 30px;
+        }
+        .app-icon { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: white; transition: transform 0.15s ease-out; }
+        .app-icon img {
+            width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 22%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); margin-bottom: 10px;
+            border: 2px solid rgba(255, 215, 0, 0.15); transition: filter 0.15s, border-color 0.15s;
+        }
+        .app-icon span { font-size: 0.95em; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.8); text-align: center; letter-spacing: 0.5px; }
+        .app-icon:active { transform: scale(0.90); }
+        .app-icon:active img { filter: brightness(0.7); }
+        @media (hover: hover) {
+            .app-icon:hover { transform: translateY(-5px); }
+            .app-icon:hover img { border-color: rgba(255, 215, 0, 0.8); box-shadow: 0 12px 25px rgba(255, 215, 0, 0.2); }
+        }
+
+        .tg-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            background: linear-gradient(135deg, #0088cc, #005f8f); color: white;
+            padding: 14px 28px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 1em;
+            box-shadow: 0 6px 20px rgba(0, 136, 204, 0.4); transition: transform 0.2s, box-shadow 0.2s;
+            border: 1.5px solid rgba(255, 255, 255, 0.2); width: 100%; max-width: 320px;
+        }
+        .tg-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
+        .tg-btn:active { transform: scale(0.96); }
+        @media (hover: hover) { .tg-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 136, 204, 0.6); } }
+    </style>
+</head>
+<body>
+    <img src="goose-logo.png" alt="Goose Games" class="goose-logo">
+    <h1>Goose Games</h1>
+    <p>Выбирай игру:</p>
+    
+    <div class="icon-grid">
+        <a href="casino.html" class="app-icon">
+            <img src="casino-icon.png" alt="Казино">
+            <span>Казино</span>
+        </a>
+        <a href="life.html" class="app-icon">
+            <img src="life-icon.png" alt="Жизнь">
+            <span>Жизнь</span>
+        </a>
+        <a href="EraTrader.html" class="app-icon">
+            <img src="trader-icon.png" alt="Торговец Эпох">
+            <span>Торговец Эпох</span>
+        </a>
+        <a href="photosynthesis.html" class="app-icon">
+            <img src="photosynthesis-icon.png" alt="Фотосинтез">
+            <span>Фотосинтез</span>
+        </a>
+        <!-- НОВАЯ ИГРА -->
+        <a href="boxtay.html" class="app-icon">
+            <img src="boxtay-icon.png" alt="Ящик тайн">
+            <span>Ящик тайн</span>
+        </a>
+    </div>
+
+    <a href="https://t.me/Goose_games1502" target="_blank" rel="noopener" class="tg-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-.962 4.084-1.36 5.417-.168.567-.312 1.058-.44 1.372-.18.428-.394.63-.66.646-.54.032-1.023-.358-1.44-.624-.84-.548-1.312-.89-2.126-1.425-.94-.618-.33-.958.205-1.512.14-.145 2.57-2.354 2.617-2.554.006-.025.011-.118-.044-.166-.055-.048-.136-.032-.195-.019-.084.019-1.42.903-4.01 2.653-.38.26-.722.387-1.03.38-.338-.007-1.42-.275-2.31-.56-.994-.345-.905-.586.19-1.025 3.95-1.72 6.584-2.854 7.9-3.402 3.76-1.56 4.54-1.832 5.05-1.84.112-.002.362.026.525.158.138.111.176.266.194.373.018.107.04.348.023.537z"/>
+        </svg>
+        Подписаться на Goose Games
+    </a>
+</body>
+</html>

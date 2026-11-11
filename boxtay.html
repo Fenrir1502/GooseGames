@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#050e1f">
+<title>Ящик тайн</title>
+<style>
+:root{
+  /* ИНТЕРФЕЙС: Глубокий синий фон, голубые кнопки */
+  --bg:#050e1f;
+  --bg-grad:linear-gradient(180deg, #0a1a3a, #050e1f);
+  --surface:rgba(255,255,255,.05);
+  --border:rgba(100,180,255,.15);
+  --border-active:rgba(100,180,255,.4);
+  --text:#e6f2ff;
+  --text-dim:#82a6cc;
+  --text-mute:#4d6d8f;
+  
+  /* Акцентный голубой */
+  --blue:#3b9eff;
+  --blue-light:#7dd3ff;
+  --blue-dark:#1a6fd4;
+  
+  --card:linear-gradient(180deg, rgba(60,130,255,.1), rgba(60,130,255,.02));
+  --card-border:1px solid rgba(80,160,255,.2);
+  
+  --nav:68px;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+  
+  /* Кнопки */
+  --btn-grad:linear-gradient(180deg, #7dd3ff 0%, #3b9eff 50%, #1a6fd4 100%);
+  --btn-shadow:0 8px 24px -6px rgba(59,158,255,.5), inset 0 1px 0 rgba(255,255,255,.4);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-font-smoothing:antialiased}
+
+/* Фон */
+.bg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(1000px 800px at 50% -10%, rgba(20,80,200,.4), transparent 60%), radial-gradient(800px 600px at 100% 110%, rgba(60,130,255,.1), transparent 60%), var(--bg-grad)}
+.bg::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(100,180,255,.03) 1px, transparent 1px),linear-gradient(90deg, rgba(100,180,255,.03) 1px, transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 90%);-webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 90%)}
+
+/* Экраны */
+.screen{position:absolute;inset:0;padding:calc(var(--st) + 16px) 16px calc(var(--nav) + var(--sb) + 28px);display:flex;flex-direction:column;align-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .3s,transform .3s,visibility .3s}
+.screen.active{opacity:1;visibility:visible;transform:none}
+.inner{width:100%;max-width:460px;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:20px}
+
+/* Текст */
+.title{font-size:clamp(28px,7vw,38px);font-weight:800;letter-spacing:-.8px;line-height:1.1;text-align:center;color:var(--text)}
+.title.sm{font-size:clamp(22px,5.5vw,28px)}
+.title .acc{background:linear-gradient(100deg, #7dd3ff, #3b9eff 50%, #1a6fd4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 12px rgba(59,158,255,.4))}
+.subtitle{margin-top:6px;font-size:13px;color:var(--text-dim);text-align:center}
+
+/* Баланс */
+.balance{width:100%;padding:24px;border-radius:24px;background:var(--card);border:var(--card-border);box-shadow:0 20px 40px -15px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);text-align:center;position:relative;overflow:hidden}
+.balance::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg, transparent, var(--blue), transparent)}
+.bl{font-size:11px;letter-spacing:2.5px;color:var(--text-mute);font-weight:700;text-transform:uppercase}
+.bv{margin-top:8px;font-size:clamp(40px,11vw,54px);font-weight:800;line-height:1;color:var(--blue-light);font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;gap:10px;text-shadow:0 0 24px rgba(59,158,255,.4)}
+.bv i{font-style:normal;font-size:.6em}
+.bdiv{height:1px;margin:20px 0 16px;background:linear-gradient(90deg, transparent, rgba(100,180,255,.2), transparent)}
+.brow{display:flex;justify-content:center;gap:24px;font-size:12px;color:var(--text-mute)}
+.brow b{display:block;margin-top:4px;color:var(--text);font-size:16px;font-variant-numeric:tabular-nums}
+
+/* Кнопки */
+.btn{width:100%;padding:16px;border:0;border-radius:16px;font:700 16px inherit;font-family:inherit;color:#041020;cursor:pointer;min-height:54px;background:var(--btn-grad);box-shadow:var(--btn-shadow);transition:transform .15s, filter .15s}
+.btn:active{transform:scale(.98);filter:brightness(.95)}
+.btn.sec{min-height:48px;padding:12px 22px;font-size:14px;max-width:300px;display:none}
+.btn.sec.on{display:block}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn.equip{background:transparent;color:var(--blue-light);border:1px solid var(--blue-dark)}
+.btn.done{background:transparent;color:var(--green);border:1px solid rgba(94,230,160,.3);cursor:default}
+
+/* HUD (Игра) */
+.hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--border);font-size:13px;color:var(--text-dim)}
+.chip b{color:var(--text);font-variant-numeric:tabular-nums;font-size:14px}
+.chip.g{border-color:rgba(59,158,255,.3)}.chip.g b{color:var(--blue-light)}
+.chip.t{border-color:rgba(94,230,160,.3)}.chip.t b{color:var(--green)}
+
+/* Сцена с ящиком */
+.stage{position:relative;width:100%;max-width:340px;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.glow{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);width:70%;height:16%;border-radius:50%;background:radial-gradient(ellipse, var(--glow, rgba(59,158,255,.4)), transparent 70%);filter:blur(24px);animation:gp 3.6s ease-in-out infinite;pointer-events:none}
+@keyframes gp{0%,100%{opacity:.6;transform:translateX(-50%) scale(.95)}50%{opacity:1;transform:translateX(-50%) scale(1.05)}}
+
+#box{position:relative;z-index:2;width:96%;height:96%;cursor:pointer;overflow:visible;display:block;filter:drop-shadow(0 20px 30px rgba(0,0,0,.6));animation:fl 4s ease-in-out infinite;transition:filter .2s}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+#box:hover{filter:drop-shadow(0 25px 35px rgba(0,0,0,.7)) drop-shadow(0 0 20px var(--glow, rgba(59,158,255,.3)))}
+#box.busy{cursor:wait;pointer-events:none}
+#box.shake{animation:sh .4s ease}
+@keyframes sh{0%,100%{transform:translateX(0) rotate(0)}15%{transform:translateX(-8px) rotate(-3deg)}35%{transform:translateX(8px) rotate(3deg)}55%{transform:translateX(-5px) rotate(-2deg)}75%{transform:translateX(5px) rotate(2deg)}}
+
+.lid{transition:transform .35s cubic-bezier(.2,.8,.3,1);transform-origin:100px 92px}
+.open-fx{opacity:0;transition:opacity .25s}
+#box .fxa{animation:tw 2.5s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.9}50%{opacity:1}}
+
+/* Всплывающая награда */
+.pop{position:absolute;top:26%;left:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;padding:10px 20px;border-radius:12px;font-size:15px;font-weight:700;white-space:nowrap;pointer-events:none;z-index:5;transition:transform .35s cubic-bezier(.2,1.5,.4,1),opacity .3s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px -10px #000}
+.pop.show{opacity:1;transform:translate(-50%,-140%) scale(1)}
+.pop.good{background:rgba(94,230,160,.15);border:1px solid rgba(94,230,160,.4);color:var(--green)}
+.pop.bad{background:rgba(255,112,120,.15);border:1px solid rgba(255,112,120,.4);color:var(--red)}
+.pop.info{background:rgba(59,158,255,.15);border:1px solid rgba(59,158,255,.4);color:var(--blue-light)}
+.pop.epic{background:rgba(196,150,255,.15);border:1px solid rgba(196,150,255,.4);color:#d4a8ff}
+
+.sum{min-height:18px;font-size:13px;color:var(--text-mute);text-align:center;line-height:1.5}
+.sum b{color:var(--blue-light);font-size:14px}
+.hint{font-size:12px;color:var(--text-mute);text-align:center}
+
+/* Магазин / Инвентарь */
+.head{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.wallet{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--border);font-size:13px;color:var(--text-dim)}
+.wallet b{color:var(--blue-light);font-size:15px;font-variant-numeric:tabular-nums}
+
+.tabs{display:flex;padding:4px;gap:4px;border-radius:14px;background:rgba(0,0,0,.3);border:1px solid var(--border);width:100%;max-width:320px}
+.tab{flex:1;padding:10px 8px;border:0;border-radius:10px;background:transparent;color:var(--text-dim);font:600 13px inherit;font-family:inherit;cursor:pointer;min-height:40px;transition:.2s}
+.tab.active{color:#041020;background:var(--btn-grad);box-shadow:var(--btn-shadow)}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+.item{position:relative;padding:14px 12px;border-radius:18px;background:var(--card);border:var(--card-border);display:flex;flex-direction:column;gap:8px;min-width:0;box-shadow:0 4px 12px -4px #000a;transition:transform .2s,border-color .2s}
+.item:hover{transform:translateY(-2px);border-color:var(--blue-dark)}
+.item.owned{border-color:rgba(94,230,160,.3)}
+.item.eq{border-color:rgba(59,158,255,.6);box-shadow:0 8px 20px -6px rgba(59,158,255,.3)}
+.item.eq::after{content:'НАДЕТО';position:absolute;top:10px;right:10px;font-size:8px;font-weight:800;letter-spacing:1px;padding:3px 6px;border-radius:4px;background:rgba(59,158,255,.2);color:var(--blue-light);border:1px solid rgba(59,158,255,.4);z-index:2}
+
+.pw{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative}
+.pw::before{content:'';position:absolute;inset:0;border-radius:12px;background:radial-gradient(circle at 50% 60%, rgba(100,180,255,.08), transparent 70%)}
+.prev{width:100%;height:100%;display:block;overflow:visible;position:relative;filter:drop-shadow(0 8px 12px rgba(0,0,0,.5));transition:transform .2s}
+.item:hover .prev{transform:scale(1.05)}
+.bprev{width:62%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--blue-light);background:linear-gradient(135deg, rgba(59,158,255,.1), transparent);border-radius:14px;border:1px solid var(--border);position:relative}
+
+.iname{font-size:13px;font-weight:700;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.idesc{font-size:11px;color:var(--text-mute);line-height:1.3;text-align:center;min-height:28px}
+.price{font-size:13px;font-weight:700;color:var(--blue-light);text-align:center}
+.price.free{color:var(--green)}
+
+.buy{width:100%;padding:10px 6px;border:0;border-radius:10px;font:700 12px inherit;font-family:inherit;cursor:pointer;min-height:38px;color:#041020;background:var(--btn-grad);box-shadow:var(--btn-shadow)}
+.buy:disabled{background:rgba(255,255,255,.03);color:var(--text-mute);cursor:not-allowed;box-shadow:none}
+.buy.equip{background:transparent;color:var(--blue-light);border:1px solid var(--blue-dark);box-shadow:none}
+.buy.done{background:transparent;color:var(--green);border:1px solid rgba(94,230,160,.3);cursor:default;box-shadow:none}
+
+/* Настройки */
+.set{width:100%;padding:24px;border-radius:20px;background:var(--card);border:var(--card-border);display:flex;flex-direction:column;gap:20px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:600}
+.row .v{color:var(--blue-light);font-weight:700;min-width:40px;text-align:right}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.1);outline:0;margin-top:8px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--btn-grad);border:2px solid var(--blue-dark);cursor:pointer;box-shadow:var(--btn-shadow)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--btn-grad);border:2px solid var(--blue-dark);cursor:pointer}
+
+.tg{position:relative;width:52px;height:30px;flex-shrink:0;background:rgba(255,255,255,.08);border-radius:15px;cursor:pointer;transition:.2s;border:1px solid var(--border)}
+.tg::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--btn-grad);transition:transform .2s}
+.tg.on{background:rgba(59,158,255,.3);border-color:var(--blue-dark)}
+.tg.on::after{transform:translateX(22px)}
+
+.code-input{display:flex;gap:8px;width:100%}
+.code-input input{flex:1;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.3);color:var(--text);font-size:14px;outline:none;font-family:inherit}
+.code-input input:focus{border-color:var(--blue)}
+.code-input button{padding:0 20px;border-radius:12px;border:0;background:var(--btn-grad);color:#041020;font-weight:700;cursor:pointer;font-size:13px;min-height:44px}
+
+/* Навигация */
+nav{position:fixed;bottom:calc(12px + var(--sb));left:50%;transform:translateX(-50%);height:var(--nav);width:calc(100% - 28px);max-width:460px;padding:6px;display:flex;gap:4px;border-radius:20px;background:rgba(5,14,31,.9);border:1px solid var(--border-active);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);box-shadow:0 20px 48px -16px #000e;z-index:50}
+.nb{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:14px;background:transparent;color:var(--text-mute);font:600 11px inherit;font-family:inherit;cursor:pointer;min-height:44px;transition:.2s}
+.nb .ic{font-size:16px}
+.nb.active{color:#041020;background:var(--btn-grad);box-shadow:var(--btn-shadow)}
+
+/* Уведомления */
+#toast{position:fixed;top:calc(var(--st) + 14px);left:50%;transform:translateX(-50%) translateY(-120px);padding:12px 22px;border-radius:14px;font-size:13px;font-weight:600;background:rgba(5,14,31,.95);border:1px solid var(--border-active);box-shadow:0 16px 40px -10px #000e;z-index:100;transition:transform .35s cubic-bezier(.2,1.3,.4,1);white-space:nowrap;pointer-events:none;max-width:calc(100vw - 28px);overflow:hidden;text-overflow:ellipsis}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.error{border-color:rgba(255,112,120,.6)}
+#toast.success{border-color:rgba(94,230,160,.6)}
+
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
+
+@media(max-width:340px){.nb span:last-child{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="screen active" id="screen-menu"><div class="inner">
+  <div><div class="title">Ящик <span class="acc">тайн</span></div><div class="subtitle">Древние реликвии · Скины · Бусты</div></div>
+  <div class="balance">
+    <div class="bl">Твоё золото</div>
+    <div class="bv"><i>🪙</i><span id="menu-coins">0</span></div>
+    <div class="bdiv"></div>
+    <div class="brow"><div>Открыто<b id="menu-opened">0</b></div><div>Скинов<b id="menu-skins">1</b></div><div>Бустов<b id="menu-boosts">0</b></div></div>
+  </div>
+  <button class="btn" data-go="game">Открыть ящик</button>
+</div></div>
+
+<div class="screen" id="screen-game"><div class="inner">
+  <div class="hud">
+    <div class="chip g">💰 <b id="coins">0</b></div>
+    <div class="chip">📜 <b id="opened">0</b></div>
+    <div class="chip t" id="chip-luck" style="display:none">🍀 <b id="luck-lvl">0</b></div>
+  </div>
+  <div class="stage">
+    <div class="glow" id="aura"></div>
+    <svg id="box" viewBox="-30 -50 260 300" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="pop" id="pop"></div>
+  </div>
+  <div class="sum" id="sum"></div>
+  <button class="btn sec" id="multi-btn" type="button"></button>
+  <div class="hint">Коснись ящика, чтобы открыть</div>
+</div></div>
+
+<div class="screen" id="screen-shop"><div class="inner" style="align-items:stretch">
+  <div class="head"><div class="title sm">Магазин</div><div class="wallet">🪙 <b id="shop-coins">0</b></div>
+    <div class="tabs"><button class="tab active" data-tab="skins">🎨 Скины</button><button class="tab" data-tab="boosts">⚡ Бусты</button></div></div>
+  <div class="grid" id="shop-grid"></div>
+</div></div>
+
+<div class="screen" id="screen-inventory"><div class="inner" style="align-items:stretch">
+  <div class="head"><div class="title sm">Инвентарь</div><div class="wallet">🪙 <b id="inv-coins">0</b></div>
+    <div class="tabs"><button class="tab active" data-inv="skins">🎨 Скины</button><button class="tab" data-inv="boosts">⚡ Бусты</button></div></div>
+  <div class="grid" id="inv-grid"></div>
+</div></div>
+
+<div class="screen" id="screen-settings"><div class="inner" style="align-items:stretch">
+  <div class="head"><div class="title sm">Настройки</div></div>
+  <div class="set">
+    <div><div class="row"><span>🔊 Звуки</span><span class="v" id="sfx-value">70%</span></div><input type="range" id="sfx-slider" min="0" max="100" value="70"></div>
+    <div><div class="row"><span>🎵 Музыка</span><span class="v" id="music-value">50%</span></div><input type="range" id="music-slider" min="0" max="100" value="50"></div>
+    <div class="row"><span>🍀 Удача</span><div class="tg" id="luck-toggle"></div></div>
+    <div class="row"><span>📳 Вибрация</span><div class="tg" id="vibe-toggle"></div></div>
+    <div style="height:1px;background:var(--border);margin:8px 0"></div>
+    <div>
+      <div class="row" style="margin-bottom:8px"><span>🎁 Промокод</span></div>
+      <div class="code-input"><input type="text" id="promo-input" placeholder="Введите код..."><button id="promo-btn">Ввод</button></div>
+    </div>
+    <div>
+      <div class="row" style="margin-bottom:8px"><span>🛠 Код разработчика</span></div>
+      <div class="code-input"><input type="text" id="dev-input" placeholder="Введите код..."><button id="dev-btn">Ввод</button></div>
+    </div>
+  </div>
+</div></div>
+
+<nav>
+  <button class="nb active" data-screen="menu"><span class="ic">🏠</span></button>
+  <button class="nb" data-screen="game"><span class="ic">📦</span></button>
+  <button class="nb" data-screen="shop"><span class="ic">🛒</span></button>
+  <button class="nb" data-screen="inventory"><span class="ic">🎒</span></button>
+  <button class="nb" data-screen="settings"><span class="ic">⚙️</span></button>
+</nav>
+<div id="toast"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+const Sound = {
+  ctx: null, sfx: .7, mus: .5, timers: [], gain: null, ni: 0,
+  mel: [523.25,659.25,783.99,1046.5,783.99,659.25,587.33,698.46,880,1174.66,880,698.46,523.25,659.25,783.99,1046.5,783.99,659.25,523.25,587.33,659.25,698.46,783.99,880],
+  bass: [130.81,146.83,130.81,146.83],
+  init() { if (this.ctx) return; try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); this.gain = this.ctx.createGain(); this.gain.gain.value = this.mus * .08; this.gain.connect(this.ctx.destination); } catch (e) {} },
+  tone(f, d, type = 'sine', v = .3, dest) { if (!this.ctx || (!dest && this.sfx <= .01)) return; try { if (this.ctx.state === 'suspended') this.ctx.resume(); const o = this.ctx.createOscillator(), g = this.ctx.createGain(), t = this.ctx.currentTime; o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * (dest ? 1 : this.sfx), t + .01); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g); g.connect(dest || this.ctx.destination); o.start(t); o.stop(t + d + .05); } catch (e) {} },
+  seq(fs, d, type, v, step) { fs.forEach((f, i) => setTimeout(() => this.tone(f, d, type, v), i * step)); },
+  click() { this.tone(800, .06, 'square', .1); },
+  open() { this.tone(400, .08, 'sine', .25); setTimeout(() => this.tone(600, .1, 'sine', .2), 60); },
+  win() { this.seq([523,659,784,1047], .15, 'triangle', .25, 80); },
+  lose() { this.tone(300, .15, 'sawtooth', .1); setTimeout(() => this.tone(200, .2, 'sawtooth', .1), 100); },
+  epic() { this.seq([523,659,784,1047,1319], .2, 'triangle', .3, 70); },
+  coin() { this.tone(1200, .08, 'square', .1); setTimeout(() => this.tone(1600, .1, 'square', .1), 50); },
+  purchase() { this.tone(600, .08, 'sine', .2); setTimeout(() => this.tone(900, .12, 'sine', .2), 80); },
+  error() { this.tone(200, .2, 'sawtooth', .15); },
+  start() { if (!this.ctx || this.timers.length) return; let bi = 0; const m = () => { if (this.mus > .01) { this.tone(this.mel[this.ni], .25, 'square', this.mus * .06, this.gain); this.ni = (this.ni + 1) % this.mel.length; } }; const b = () => { if (this.mus > .01) { this.tone(this.bass[bi], .4, 'sawtooth', this.mus * .1, this.gain); bi = (bi + 1) % 4; } }; this.timers = [setInterval(m, 150), setInterval(b, 300)]; m(); b(); },
+  stop() { this.timers.forEach(clearInterval); this.timers = []; },
+  setMus(v) { this.mus = v; if (this.gain) this.gain.gain.setTargetAtTime(v * .08, this.ctx.currentTime, .1); if (v > .01 && !this.timers.length && this.ctx) this.start(); if (v <= .01) this.stop(); }
+};
+
+function shade(h, p) { h = String(h).replace('#', ''); if (h.length === 3) h = h.replace(/./g, m => m + m); const n = parseInt(h, 16), t = p < 0 ? 0 : 255, a = Math.abs(p), f = v => Math.round(v + (t - v) * a); return '#' + ((1 << 24) + (f(n >> 16) << 16) + (f((n >> 8) & 255) << 8) + f(n & 255)).toString(16).slice(1); }
+
+const SKINS = [
+  { id:'default',   name:'Тайна',     desc:'Дуб и сталь',        price:0,    body:'#8a5a2e', lid:'#b07a42', metal:'#8a94a8', lock:'#cbd5e1', fx:[] },
+  { id:'amethyst',  name:'Аметист',   desc:'Кристалл духа',      price:120,  body:'#a855f7', lid:'#d8b4fe', fx:['crystal','glow'] },
+  { id:'crimson',   name:'Багрянец',  desc:'Кровь древних',      price:200,  body:'#ef4444', lid:'#fca5a5', fx:['hearts','glow'] },
+  { id:'forest',    name:'Лес',       desc:'Живая чаща',         price:260,  body:'#22c55e', lid:'#86efac', fx:['crystal','glow'] },
+  { id:'sun',       name:'Солнце',    desc:'Золотой свет',       price:320,  body:'#d4af37', lid:'#f4d97a', metal:'#f59e0b', lock:'#fff', fx:['starsL','glow'] },
+  { id:'moon',      name:'Луна',      desc:'Серебряный свет',    price:380,  body:'#94a3b8', lid:'#e2e8f0', fx:['stars','starsL'] },
+  { id:'void',      name:'Пустота',   desc:'Из ниоткуда',        price:450,  body:'#4c1d95', lid:'#8b5cf6', metal:'#2e1065', fx:['stars','starsL','glow'] },
+  { id:'storm',     name:'Гроза',     desc:'Сила молний',        price:520,  body:'#3b82f6', lid:'#93c5fd', fx:['lightning','glow'] },
+  { id:'crystal',   name:'Кристалл',  desc:'Чистый минерал',     price:600,  body:'#06b6d4', lid:'#67e8f9', fx:['crystal','glow'] },
+  { id:'inferno',   name:'Инферно',   desc:'Адский огонь',       price:700,  body:'#ea580c', lid:'#fdba74', fx:['flame','spikes'] },
+  { id:'dream',     name:'Сон',       desc:'Сладкие грёзы',      price:800,  body:'#db2777', lid:'#fbcfe8', fx:['hearts','stars'] },
+  { id:'royal',     name:'Король',    desc:'Величие и власть',   price:900,  body:'#d4af37', lid:'#f4d97a', metal:'#a67c00', lock:'#fff', fx:['crown','glow'] },
+  { id:'frost',     name:'Мороз',     desc:'Ледяная стужа',      price:1000, body:'#0ea5e9', lid:'#bae6fd', fx:['ice','glow'] },
+  { id:'toxic',     name:'Токсин',    desc:'Ядовитая мощь',      price:1100, body:'#65a30d', lid:'#bef264', fx:['flame','glow'] },
+  { id:'angel',     name:'Ангел',     desc:'Небесная благодать', price:1200, body:'#fef08a', lid:'#fef9c3', metal:'#fde047', fx:['wings','starsL','glow'] },
+  { id:'demon',     name:'Демон',     desc:'Тёмная сущность',    price:1300, body:'#e11d48', lid:'#fda4af', metal:'#4c0519', fx:['spikes','flame'] },
+  { id:'celestial', name:'Небесный',  desc:'Звёздный свет',      price:1400, body:'#6366f1', lid:'#a5b4fc', fx:['stars','starsL','crystal'] },
+  { id:'phoenix',   name:'Феникс',    desc:'Возрождение в огне', price:1600, body:'#f97316', lid:'#fdba74', fx:['flame','crystal','glow'] },
+  { id:'neon',      name:'Неон',      desc:'Кибер-магия',        price:1800, body:'#0d9488', lid:'#5eead4', fx:['lightning','stars'] },
+  { id:'cosmic',    name:'Космос',    desc:'Бесконечность',      price:2000, body:'#c026d3', lid:'#f0abfc', fx:['stars','starsL','crystal','glow'] },
+  { id:'brawl',     name:'Бум',       desc:'Взрывной стиль',     price:500,  body:'#3b82f6', lid:'#facc15', metal:'#f43f5e', fx:['skull','stars'], secret:true },
+  { id:'goose',     name:'Гусь',      desc:'Га-га-га!',          price:750,  body:'#f8fafc', lid:'#e2e8f0', metal:'#facc15', lock:'#f97316', fx:['goose','glow'], secret:true },
+  { id:'halloween', name:'Хэллоуин',  desc:'Сладость или гадость', price:850, body:'#ea580c', lid:'#c2410c', metal:'#a16207', fx:['pumpkin'], secret:true },
+  { id:'newyear',   name:'Новый год', desc:'С праздником!',      price:950,  body:'#991b1b', lid:'#dc2626', metal:'#f8fafc', fx:['snowflake','stars','bow','glow'], secret:true }
+];
+SKINS.forEach(s => {
+  const m = s.metal || shade(s.body, -.4), k = s.lock || '#facc15';
+  s.c = { body:s.body, bs:shade(s.body,-.55), lid:s.lid, ls:shade(s.lid,-.5), m, ms:shade(m,-.55), h:shade(s.lid,.3), hs:shade(s.lid,-.5), lock:k, lks:shade(k,-.55) };
+});
+
+const BOOSTS = [
+  { id:'multi10', name:'Открыть 10', desc:'Мгновенно открыть 10 ящиков', price:200,  icon:'×10' },
+  { id:'x2coins', name:'×2 монеты',  desc:'Все награды ×2 (навсегда)',   price:500,  icon:'×2' },
+  { id:'lucky',   name:'Удача +',    desc:'Шанс редких наград +1',       price:800,  icon:'🍀' },
+  { id:'multi25', name:'Открыть 25', desc:'Мгновенно открыть 25 ящиков', price:900,  icon:'×25' },
+  { id:'x3coins', name:'×3 монеты',  desc:'Все награды ×3 (навсегда)',   price:1500, icon:'×3' },
+  { id:'lucky2',  name:'Удача ++',   desc:'Максимальный шанс редких',    price:2000, icon:'🍀²' },
+  { id:'auto',    name:'Авто',       desc:'Ящик раз в 30 сек',           price:1200, icon:'↻' },
+  { id:'multi100',name:'Открыть 100',desc:'Мгновенно открыть 100 ящиков',price:5000, icon:'×100' }
+];
+
+const REWARDS = [
+  { name:'Пусто...', emoji:'😢', coins:0,   chance:28, type:'bad' },
+  { name:'Пыль',     emoji:'💨', coins:1,   chance:22, type:'info' },
+  { name:'Монетка',  emoji:'🪙', coins:5,   chance:18, type:'good' },
+  { name:'Мешочек',  emoji:'💰', coins:15,  chance:14, type:'good' },
+  { name:'Сундук',   emoji:'🏆', coins:40,  chance:10, type:'good' },
+  { name:'Артефакт', emoji:'🔮', coins:80,  chance:5,  type:'epic' },
+  { name:'ДЖЕКПОТ!', emoji:'💎', coins:150, chance:3,  type:'epic' }
+];
+
+const FX = {
+  goose: () => `<ellipse cx="100" cy="64" rx="30" ry="25" fill="#fff" stroke="#94a3b8" stroke-width="3"/><path d="M62 52 Q48 44 54 58 Q58 62 64 56Z M138 52 Q152 44 146 58 Q142 62 136 56Z" fill="#fff" stroke="#94a3b8" stroke-width="2.5"/><circle cx="86" cy="60" r="6" fill="#1e293b"/><circle cx="114" cy="60" r="6" fill="#1e293b"/><circle cx="88" cy="58" r="2" fill="#fff"/><circle cx="116" cy="58" r="2" fill="#fff"/><path d="M90 71 L110 71 L100 84Z" fill="#f97316" stroke="#c2410c" stroke-width="2" stroke-linejoin="round"/>`,
+  skull: () => `<ellipse cx="100" cy="64" rx="28" ry="24" fill="#fef08a" stroke="#a16207" stroke-width="3"/><circle cx="86" cy="61" r="7" fill="#451a03"/><circle cx="114" cy="61" r="7" fill="#451a03"/><path d="M96 74 L104 74 L100 81Z" fill="#451a03"/><path d="M86 84v7M93 84v7M100 84v7M107 84v7M114 84v7" stroke="#a16207" stroke-width="3" stroke-linecap="round"/><ellipse cx="90" cy="53" rx="6" ry="3" fill="#fff" opacity=".45"/>`,
+  crown: () => `<path d="M62 40 L62 12 L81 28 L100 2 L119 28 L138 12 L138 40Z" fill="#facc15" stroke="#a16207" stroke-width="4" stroke-linejoin="round"/><path d="M66 36 H134" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/><circle cx="100" cy="22" r="5" fill="#f43f5e" stroke="#9f1239" stroke-width="2"/><circle cx="81" cy="30" r="4" fill="#3b82f6" stroke="#1e3a8a" stroke-width="2"/><circle cx="119" cy="30" r="4" fill="#3b82f6" stroke="#1e3a8a" stroke-width="2"/>`,
+  crystal: c => `<ellipse cx="100" cy="10" rx="38" ry="38" fill="${c.lid}" opacity=".35"/><path d="M100 -26 L124 12 L100 42 L76 12Z" fill="${c.body}" stroke="${c.bs}" stroke-width="4" stroke-linejoin="round"/><path d="M100 -26V42M76 12H124" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><path d="M88 0 L96 -14 L99 0 L93 8Z" fill="#fff" opacity=".6"/>`,
+  bow: () => `<path d="M100 10 Q60 -10 40 20 Q60 40 100 20 Q140 40 160 20 Q140 -10 100 10Z" fill="#22c55e" stroke="#15803d" stroke-width="3" stroke-linejoin="round"/><path d="M100 20 L82 56 L100 48 L118 56Z" fill="#22c55e" stroke="#15803d" stroke-width="2" stroke-linejoin="round"/><rect x="90" y="8" width="20" height="24" rx="4" fill="#16a34a" stroke="#14532d" stroke-width="2"/>`,
+  flame: () => `<path d="M50 90 Q25 45 60 25 Q45 60 70 78 Q60 90 50 90Z M150 90 Q175 45 140 25 Q155 60 130 78 Q140 90 150 90Z M100 40 Q75 -15 100 -35 Q125 -15 100 40Z" fill="#f97316" stroke="#9a3412" stroke-width="3" stroke-linejoin="round"/><path d="M50 84 Q40 55 62 40 Q55 62 68 80Z M150 84 Q160 55 138 40 Q145 62 132 80Z M100 30 Q88 -5 100 -22 Q112 -5 100 30Z" fill="#fef08a"/>`,
+  spikes: () => `<path d="M60 50 L28 8 L76 40Z M140 50 L172 8 L124 40Z M100 40 L84 -18 L116 -18Z" fill="#64748b" stroke="#1e293b" stroke-width="4" stroke-linejoin="round"/><path d="M100 36 L96 -12 L104 -12Z" fill="#94a3b8"/>`,
+  ice: () => `<path d="M40 82 L18 38 L56 64Z M160 82 L182 38 L144 64Z M100 40 L78 -10 L122 -10Z" fill="#bae6fd" stroke="#0ea5e9" stroke-width="4" stroke-linejoin="round"/><path d="M100 35 L90 -2 L110 -2Z" fill="#e0f2fe"/>`,
+  starsL: () => `<g fill="#fff" stroke="#1e3a8a" stroke-width="1.5" stroke-linejoin="round"><path d="M52 52 L54.5 58 L60 60 L54.5 62 L52 68 L49.5 62 L44 60 L49.5 58Z M148 52 L150.5 58 L156 60 L150.5 62 L148 68 L145.5 62 L140 60 L145.5 58Z"/></g>`,
+  wings: () => `<path d="M52 62 Q0 20 12 86 Q40 74 52 62Z M148 62 Q200 20 188 86 Q160 74 148 62Z" fill="#fff" stroke="#94a3b8" stroke-width="3" stroke-linejoin="round"/><path d="M52 62 Q18 42 28 74 Q42 70 52 62Z M148 62 Q182 42 172 74 Q158 70 148 62Z" fill="#e2e8f0"/>`,
+  stars: () => `<g fill="#fff" stroke="#1e3a8a" stroke-width="1.5" stroke-linejoin="round"><path d="M62 112 L66 121 L75 123 L68 129 L70 138 L62 133 L54 138 L56 129 L49 123 L58 121Z M138 124 L141 131 L148 133 L142 138 L144 145 L138 141 L132 145 L134 138 L128 133 L135 131Z"/></g>`,
+  lightning: () => `<path d="M70 108 L55 143 L72 138 L60 168 L85 133 L72 136 L80 108Z M130 108 L145 143 L128 138 L140 168 L115 133 L128 136 L120 108Z" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5" stroke-linejoin="round"/>`,
+  hearts: () => `<g fill="#f43f5e" stroke="#9f1239" stroke-width="2" stroke-linejoin="round"><path d="M58 122 C58 112 73 112 73 122 C73 112 88 112 88 122 C88 137 73 147 73 147 C73 147 58 137 58 122Z"/><path d="M118 138 C118 130 128 130 128 138 C128 130 138 130 138 138 C138 148 128 156 128 156 C128 156 118 148 118 138Z"/></g>`,
+  snowflake: () => `<g stroke="#e0f2fe" stroke-width="3.2" stroke-linecap="round" fill="none"><path d="M100 112V158M77 135H123M84 119L116 151M116 119L84 151M93 122L100 115L107 122M93 148L100 155L107 148M80 128L87 135L80 142M120 128L113 135L120 142"/></g><g fill="#fef08a" stroke="#ca8a04" stroke-width="1"><path d="M55 125 L57 130 L62 132 L57 134 L55 139 L53 134 L48 132 L53 130Z M145 125 L147 130 L152 132 L147 134 L145 139 L143 134 L138 132 L143 130Z"/></g>`
+};
+const LID_FX = ['skull','goose','crown','crystal','bow','flame','spikes','ice','starsL'];
+const BODY_FX = ['stars','lightning','hearts','snowflake'];
+
+function pumpkin(u) {
+  return `<path d="M38 100 Q16 135 38 172 Q100 198 162 172 Q184 135 162 100 Q100 76 38 100Z" fill="#ea580c" stroke="#c2410c" stroke-width="4"/>
+  <path d="M66 90 Q50 135 66 182M134 90 Q150 135 134 182" stroke="#c2410c" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>
+  <rect x="82" y="16" width="36" height="22" rx="7" fill="#78350f" stroke="#451a03" stroke-width="3"/>
+  <path d="M55 122 Q68 104 80 122 Q68 138 55 122Z M145 122 Q132 104 120 122 Q132 138 145 122Z" fill="#fef08a" stroke="#9a3412" stroke-width="2.5"/>
+  <path d="M74 146 L85 141 L95 151 L105 141 L115 151 L126 146 L116 162 L105 156 L95 166 L84 156Z" fill="#7c2d12" stroke="#451a03" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M40 100 Q18 135 40 172 Q100 198 160 172 Q182 135 160 100 Q100 76 40 100Z" fill="url(#${u}fl)"/>`;
+}
+
+function chest(s, u) {
+  const c = s.c, fx = s.fx, hal = s.id === 'halloween';
+  const mk = list => fx.filter(k => list.includes(k)).map(k => FX[k](c)).join('');
+  const lidFx = mk(LID_FX), bodyFx = mk(BODY_FX), backFx = mk(['wings']);
+  const noLock = hal || fx.includes('snowflake');
+  const lidPath = 'M30 92 L170 92 L170 78 Q170 36 100 36 Q30 36 30 78Z';
+  const grad = (id, col) => `<linearGradient id="${u}${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shade(col,.25)}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${shade(col,-.3)}"/></linearGradient>`;
+  const rivet = (x, y) => `<circle cx="${x}" cy="${y}" r="2.4" fill="${shade(c.m,.35)}" stroke="${c.ms}" stroke-width="1"/>`;
+  const coin = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>`;
+  const band = (x, y, w, h, r = 0) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="url(#${u}m)" stroke="${c.ms}" stroke-width="3"/>`;
+
+  const body = hal ? pumpkin(u) : `
+    <rect x="35" y="88" width="130" height="94" rx="14" fill="url(#${u}b)" stroke="${c.bs}" stroke-width="4"/>
+    <rect x="35" y="88" width="130" height="94" rx="14" fill="url(#${u}w)"/>
+    <path d="M82 96V160M118 96V160" stroke="rgba(0,0,0,.22)" stroke-width="1.6"/>
+    <rect x="44" y="95" width="112" height="8" rx="4" fill="url(#${u}g)" opacity=".4"/>
+    ${band(50,88,20,76)}${band(130,88,20,76)}${band(32,160,136,24,9)}
+    <rect x="42" y="163" width="116" height="5" rx="2.5" fill="url(#${u}g)" opacity=".4"/>
+    ${rivet(60,100)}${rivet(60,150)}${rivet(140,100)}${rivet(140,150)}${rivet(48,173)}${rivet(100,173)}${rivet(152,173)}`;
+
+  // ВНУТРЕННЕЕ СВЕЧЕНИЕ (без луча, просто свечение)
+  const inside = `<g class="open-fx"><ellipse cx="100" cy="90" rx="55" ry="14" fill="url(#${u}gold)" opacity=".5"/><ellipse cx="100" cy="90" rx="62" ry="9" fill="${shade(c.bs,-.5)}"/><ellipse cx="100" cy="88" rx="52" ry="6" fill="url(#${u}gold)"/>${coin(78,87,5)}${coin(96,85,5)}${coin(116,87,5)}${coin(106,83,4)}</g>`;
+
+  const lid = `<g class="lid">
+    <path d="${lidPath}" fill="url(#${u}l)"/><path d="${lidPath}" fill="url(#${u}w)"/>
+    <g clip-path="url(#${u}c)">${band(50,20,20,80)}${band(130,20,20,80)}</g>
+    <path d="M44 74 Q44 50 100 47 Q156 50 156 74 Q128 58 100 58 Q72 58 44 74Z" fill="url(#${u}g)" opacity=".5"/>
+    <path d="${lidPath}" fill="none" stroke="${c.ls}" stroke-width="4" stroke-linejoin="round"/>
+    ${band(27,80,146,14,6)}${rivet(40,87)}${rivet(60,87)}${rivet(140,87)}${rivet(160,87)}
+    ${hal ? '' : `<rect x="72" y="20" width="56" height="20" rx="10" fill="${c.h}" stroke="${c.hs}" stroke-width="4"/><rect x="80" y="24" width="40" height="5" rx="2.5" fill="#fff" opacity=".45"/>`}
+    <g class="fxa">${lidFx}</g></g>`;
+
+  const lock = noLock ? '' : `
+    <path d="M91 106V98Q91 87 100 87Q109 87 109 98V106" fill="none" stroke="${c.lks}" stroke-width="5.5" stroke-linecap="round"/>
+    <rect x="84" y="103" width="32" height="36" rx="7" fill="${c.lock}" stroke="${c.lks}" stroke-width="4"/>
+    <rect x="84" y="103" width="32" height="36" rx="7" fill="url(#${u}g)" opacity=".4"/>
+    <circle cx="100" cy="118" r="4.8" fill="#1e293b"/><path d="M97.5 121V129Q97.5 131.5 100 131.5Q102.5 131.5 102.5 129V121Z" fill="#1e293b"/>`;
+
+  // inside теперь ПЕРЕД lid, а луч света убран вовсе
+  return `<defs>${grad('b',c.body)}${grad('l',c.lid)}${grad('m',c.m)}
+    <linearGradient id="${u}fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".4" stop-color="#fff" stop-opacity=".03"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>
+    <linearGradient id="${u}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="${u}gold"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#d97706"/></radialGradient>
+    <radialGradient id="${u}sh"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".6" stop-color="#000" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="${u}rg"><stop offset="0" stop-color="${c.lid}" stop-opacity=".5"/><stop offset="1" stop-color="${c.lid}" stop-opacity="0"/></radialGradient>
+    <pattern id="${u}w" width="30" height="12" patternUnits="userSpaceOnUse"><path d="M0 3Q8 1 15 3T30 3M0 8Q8 6 15 8T30 8" stroke="rgba(0,0,0,.1)" stroke-width=".8" fill="none"/></pattern>
+    <clipPath id="${u}c"><path d="${lidPath}"/></clipPath></defs>
+    ${fx.includes('glow') ? `<ellipse cx="100" cy="95" rx="125" ry="100" fill="url(#${u}rg)"/>` : ''}
+    <ellipse cx="100" cy="188" rx="80" ry="11" fill="url(#${u}sh)"/>
+    ${backFx}${body}${inside}<g class="fxa">${bodyFx}</g>${lid}${lock}`;
+}
+const previewSVG = s => `<svg class="prev" viewBox="-30 -50 260 300" preserveAspectRatio="xMidYMid meet">${chest(s, 'p_' + s.id + '_')}</svg>`;
+
+const KEY = 'boxOfSecretsState_v23';
+const DEF = { coins:0, opened:0, ownedSkins:['default'], equippedSkin:'default', ownedBoosts:[], currentTab:'skins', invTab:'skins', sfxVolume:.7, musicVolume:.5, showLuck:true, vibration:true };
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY) || localStorage.getItem('boxOfSecretsState_v22');
+    if (!raw) return structuredClone(DEF);
+    const s = JSON.parse(raw), m = { ...DEF, ...s };
+    m.ownedSkins = Array.isArray(s.ownedSkins) && s.ownedSkins.length ? s.ownedSkins : ['default'];
+    if (!m.ownedSkins.includes('default')) m.ownedSkins.unshift('default');
+    if (!m.ownedSkins.includes(m.equippedSkin)) m.equippedSkin = 'default';
+    m.ownedBoosts = Array.isArray(s.ownedBoosts) ? s.ownedBoosts : [];
+    m.coins = Number(s.coins) || 0; m.opened = Number(s.opened) || 0;
+    m.currentTab = s.currentTab === 'boosts' ? 'boosts' : 'skins';
+    m.invTab = s.invTab === 'boosts' ? 'boosts' : 'skins';
+    m.sfxVolume = typeof s.sfxVolume === 'number' ? s.sfxVolume : .7;
+    m.musicVolume = typeof s.musicVolume === 'number' ? s.musicVolume : .5;
+    m.showLuck = s.showLuck !== false; m.vibration = s.vibration !== false;
+    return m;
+  } catch { return structuredClone(DEF); }
+}
+let state = loadState(), autoTimer = null, busy = false, lidEl = null, openFxEl = null;
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+const $ = id => document.getElementById(id);
+const hasBoost = id => state.ownedBoosts.includes(id);
+const boxEl = $('box'), auraEl = $('aura'), multiBtn = $('multi-btn'), shopGrid = $('shop-grid'), invGrid = $('inv-grid');
+const screens = {}; ['menu','game','shop','inventory','settings'].forEach(n => screens[n] = $('screen-' + n));
+
+function switchScreen(name) {
+  Object.entries(screens).forEach(([k, el]) => el.classList.toggle('active', k === name));
+  document.querySelectorAll('.nb').forEach(b => b.classList.toggle('active', b.dataset.screen === name));
+  ({ shop: renderShop, menu: renderMenu, game: () => { renderGame(); updateMulti(); }, inventory: renderInventory, settings: renderSettings })[name]();
+}
+document.querySelectorAll('.nb').forEach(b => b.addEventListener('click', () => { Sound.click(); switchScreen(b.dataset.screen); }));
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { Sound.click(); switchScreen(b.dataset.go); }));
+
+function renderMenu() {
+  $('menu-coins').textContent = state.coins; $('menu-opened').textContent = state.opened;
+  $('menu-skins').textContent = state.ownedSkins.length; $('menu-boosts').textContent = state.ownedBoosts.length;
+}
+function renderGame() {
+  $('coins').textContent = state.coins; $('opened').textContent = state.opened;
+  const lv = hasBoost('lucky2') ? 2 : hasBoost('lucky') ? 1 : 0;
+  $('chip-luck').style.display = lv && state.showLuck ? 'inline-flex' : 'none';
+  $('luck-lvl').textContent = 'Lv' + lv;
+}
+function updateAll() { renderMenu(); renderGame(); $('shop-coins').textContent = state.coins; $('inv-coins').textContent = state.coins; }
+
+function applySkin(id) {
+  const s = SKINS.find(x => x.id === id) || SKINS[0];
+  boxEl.innerHTML = chest(s, 'm_');
+  lidEl = boxEl.querySelector('.lid'); openFxEl = boxEl.querySelector('.open-fx');
+  auraEl.style.setProperty('--glow', s.lid + '80');
+  boxEl.style.setProperty('--glow', s.lid + 'b3');
+}
+
+function setTabs(attr, key, render) {
+  document.querySelectorAll(`[data-${attr}]`).forEach(b => b.addEventListener('click', () => {
+    state[key] = b.dataset[attr]; save(); render();
+  }));
+}
+setTabs('tab', 'currentTab', () => renderShop());
+setTabs('inv', 'invTab', () => renderInventory());
+
+function skinCard(s) {
+  const owned = state.ownedSkins.includes(s.id), eq = state.equippedSkin === s.id, el = document.createElement('div');
+  el.className = 'item' + (owned ? ' owned' : '') + (eq ? ' eq' : '');
+  const can = state.coins >= s.price;
+  const btn = eq ? `<button class="buy done" disabled>Надет ✓</button>`
+    : owned ? `<button class="buy equip" data-a="equip" data-id="${s.id}">Надеть</button>`
+    : `<button class="buy" data-a="buy-skin" data-id="${s.id}" ${can ? '' : 'disabled'}>${can ? 'Купить' : 'Мало монет'}</button>`;
+  el.innerHTML = `<div class="pw">${previewSVG(s)}</div><div class="iname">${s.name}</div><div class="idesc">${s.desc}</div><div class="price ${s.price ? '' : 'free'}">${s.price ? '🪙 ' + s.price : 'Бесплатно'}</div>${btn}`;
+  return el;
+}
+function boostCard(b) {
+  const owned = hasBoost(b.id), el = document.createElement('div');
+  el.className = 'item' + (owned ? ' owned' : '');
+  const repl = (b.id === 'multi10' && hasBoost('multi25')) || (b.id === 'x2coins' && hasBoost('x3coins')) || (b.id === 'lucky' && hasBoost('lucky2')) || (b.id === 'multi25' && hasBoost('multi100'));
+  const can = state.coins >= b.price;
+  const btn = owned ? `<button class="buy done" disabled>Активен</button>`
+    : repl ? `<button class="buy" disabled>Заменён</button>`
+    : `<button class="buy" data-a="buy-boost" data-id="${b.id}" ${can ? '' : 'disabled'}>${can ? 'Купить' : 'Мало монет'}</button>`;
+  el.innerHTML = `<div class="pw"><div class="bprev">${b.icon}</div></div><div class="iname">${b.name}</div><div class="idesc">${b.desc}</div><div class="price">🪙 ${b.price}</div>${btn}`;
+  return el;
+}
+function renderShop() {
+  $('shop-coins').textContent = state.coins;
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === state.currentTab));
+  shopGrid.innerHTML = '';
+  const availableSkins = SKINS.filter(s => !s.secret);
+  (state.currentTab === 'skins' ? availableSkins.map(skinCard) : BOOSTS.map(boostCard)).forEach(c => shopGrid.appendChild(c));
+}
+function renderInventory() {
+  $('inv-coins').textContent = state.coins;
+  document.querySelectorAll('[data-inv]').forEach(b => b.classList.toggle('active', b.dataset.inv === state.invTab));
+  invGrid.innerHTML = '';
+  const skins = state.invTab === 'skins';
+  const list = skins ? SKINS.filter(s => state.ownedSkins.includes(s.id)) : BOOSTS.filter(b => hasBoost(b.id));
+  if (!list.length) { invGrid.innerHTML = `<div class="empty">У тебя пока нет ${skins ? 'скинов' : 'бустов'}.<br>Загляни в магазин!</div>`; return; }
+  list.forEach(x => invGrid.appendChild(skins ? skinCard(x) : boostCard(x)));
+}
+function handleShopClick(e) {
+  const btn = e.target.closest('button[data-a]'); if (!btn) return;
+  const id = btn.dataset.id, a = btn.dataset.a;
+  const rerender = () => { updateAll(); renderShop(); renderInventory(); };
+  if (a === 'buy-skin') {
+    const s = SKINS.find(x => x.id === id);
+    if (!s || state.ownedSkins.includes(id)) return;
+    if (state.coins < s.price) { toast('Не хватает монет', 'error'); Sound.error(); return; }
+    state.coins -= s.price; state.ownedSkins.push(id); state.equippedSkin = id;
+    applySkin(id); save(); rerender();
+    toast(`Куплен скин «${s.name}»`, 'success'); Sound.purchase(); burst(); vibrate(30);
+  } else if (a === 'equip') {
+    if (!state.ownedSkins.includes(id)) return;
+    state.equippedSkin = id; applySkin(id); save(); rerender();
+    toast(`Надет скин «${SKINS.find(x => x.id === id).name}»`); Sound.click();
+  } else if (a === 'buy-boost') {
+    const b = BOOSTS.find(x => x.id === id);
+    if (!b || hasBoost(id)) return;
+    if (state.coins < b.price) { toast('Не хватает монет', 'error'); Sound.error(); return; }
+    state.coins -= b.price; state.ownedBoosts.push(id);
+    [['multi100','multi25'],['multi25','multi10'],['x3coins','x2coins'],['lucky2','lucky']].forEach(([hi, lo]) => { if (id === hi && !hasBoost(lo)) state.ownedBoosts.push(lo); });
+    save(); rerender(); updateMulti(); setupAuto();
+    toast(`Буст «${b.name}» активирован!`, 'success'); Sound.purchase(); burst(); vibrate(30);
+  }
+}
+shopGrid.addEventListener('click', handleShopClick);
+invGrid.addEventListener('click', handleShopClick);
+
+function renderSettings() {
+  $('sfx-slider').value = Math.round(state.sfxVolume * 100); $('music-slider').value = Math.round(state.musicVolume * 100);
+  $('sfx-value').textContent = Math.round(state.sfxVolume * 100) + '%'; $('music-value').textContent = Math.round(state.musicVolume * 100) + '%';
+  $('luck-toggle').classList.toggle('on', state.showLuck); $('vibe-toggle').classList.toggle('on', state.vibration);
+}
+$('sfx-slider').addEventListener('input', e => {
+  state.sfxVolume = Sound.sfx = e.target.value / 100; $('sfx-value').textContent = e.target.value + '%'; save();
+  if (state.sfxVolume > .01) Sound.tone(600, .05, 'sine', .2);
+});
+$('music-slider').addEventListener('input', e => {
+  state.musicVolume = e.target.value / 100; $('music-value').textContent = e.target.value + '%'; Sound.setMus(state.musicVolume); save();
+});
+$('luck-toggle').addEventListener('click', () => { state.showLuck = !state.showLuck; save(); renderSettings(); renderGame(); Sound.click(); });
+$('vibe-toggle').addEventListener('click', () => { state.vibration = !state.vibration; save(); renderSettings(); Sound.click(); });
+
+const PROMOS = { 'Halloween3131oct': 'halloween', 'newyear31dec': 'newyear', 'Goosegames': 'goose', 'bsnast2020': 'brawl' };
+const DEV_CODE = 'GGGG1502';
+
+function applyPromo(code) {
+  if (PROMOS[code]) {
+    const skinId = PROMOS[code];
+    const skin = SKINS.find(s => s.id === skinId);
+    if (!skin) return;
+    if (state.ownedSkins.includes(skinId)) { toast('Этот скин уже получен!', 'info'); return; }
+    state.ownedSkins.push(skinId); state.equippedSkin = skinId; applySkin(skinId);
+    save(); updateAll(); renderInventory();
+    toast(`Промокод активирован! Получен скин «${skin.name}»`, 'success');
+    Sound.purchase(); burst(); vibrate(30);
+  } else { toast('Неверный промокод', 'error'); Sound.error(); }
+}
+
+function applyDevCode(code) {
+  if (code === DEV_CODE) {
+    SKINS.forEach(s => { if (!state.ownedSkins.includes(s.id)) state.ownedSkins.push(s.id); });
+    BOOSTS.forEach(b => { if (!state.ownedBoosts.includes(b.id)) state.ownedBoosts.push(b.id); });
+    state.coins += 10000;
+    save(); updateAll(); renderShop(); renderInventory(); updateMulti(); setupAuto();
+    toast('Код разработчика активирован! Всё разблокировано.', 'success');
+    Sound.epic(); burst(); vibrate(100);
+  } else { toast('Неверный код разработчика', 'error'); Sound.error(); }
+}
+
+$('promo-btn').addEventListener('click', () => {
+  const val = $('promo-input').value.trim();
+  if (!val) return;
+  applyPromo(val);
+  $('promo-input').value = '';
+});
+$('dev-btn').addEventListener('click', () => {
+  const val = $('dev-input').value.trim();
+  if (!val) return;
+  applyDevCode(val);
+  $('dev-input').value = '';
+});
+
+function pickReward() {
+  const t = REWARDS.map(r => ({ ...r }));
+  const lv = hasBoost('lucky2') ? 2 : hasBoost('lucky') ? 1 : 0;
+  const tables = [null, [14,18,22,20,15,7,4], [6,10,18,22,22,14,8]];
+  if (lv) t.forEach((r, i) => r.chance = tables[lv][i]);
+  let roll = Math.random() * t.reduce((s, r) => s + r.chance, 0);
+  for (const r of t) { roll -= r.chance; if (roll <= 0) return r; }
+  return t[t.length - 1];
+}
+function rollReward() {
+  const r = pickReward(), m = hasBoost('x3coins') ? 3 : hasBoost('x2coins') ? 2 : 1;
+  return { ...r, coins: r.coins * m };
+}
+function updateMulti() {
+  const n = hasBoost('multi100') ? 100 : hasBoost('multi25') ? 25 : hasBoost('multi10') ? 10 : 0;
+  multiBtn.classList.toggle('on', !!n);
+  if (n) { multiBtn.textContent = `⚡ Открыть ${n} ящиков`; multiBtn.dataset.amount = n; }
+}
+function setupAuto() {
+  clearInterval(autoTimer); autoTimer = null;
+  if (hasBoost('auto')) autoTimer = setInterval(() => { if (!busy && screens.game.classList.contains('active')) openOnce(); }, 30000);
+}
+function setBusy(v) { busy = v; boxEl.classList.toggle('busy', v); multiBtn.disabled = v; }
+function lidOpen() {
+  if (!lidEl) return;
+  lidEl.style.transform = 'translateY(-30px) rotate(-11deg)';
+  if (openFxEl) openFxEl.style.opacity = '1';
+}
+function lidClose() {
+  if (!lidEl) return;
+  lidEl.style.transform = 'none';
+  if (openFxEl) openFxEl.style.opacity = '0';
+}
+const pop = $('pop');
+function showPop(r) {
+  pop.textContent = `${r.emoji} ${r.name}${r.coins > 0 ? ' +' + r.coins : ''}`;
+  pop.className = 'pop show ' + r.type;
+  clearTimeout(showPop.t); showPop.t = setTimeout(() => pop.classList.remove('show'), 1200);
+}
+function vibrate(ms) { if (state.vibration && navigator.vibrate) try { navigator.vibrate(ms); } catch {} }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function shake() { boxEl.classList.remove('shake'); void boxEl.getBoundingClientRect(); boxEl.classList.add('shake'); }
+
+async function openOnce() {
+  if (busy) return;
+  setBusy(true); shake(); lidOpen(); Sound.open();
+  await wait(300);
+  const r = rollReward();
+  state.coins += r.coins; state.opened++; save(); updateAll(); showPop(r);
+  r.type === 'epic' ? Sound.epic() : r.coins > 0 ? Sound.win() : Sound.lose();
+  vibrate(20);
+  if (r.coins > 0) { const b = boxEl.getBoundingClientRect(); confetti(b.left + b.width / 2, b.top + b.height / 3, Math.min(100, 16 + r.coins)); }
+  await wait(420); lidClose(); boxEl.classList.remove('shake'); setBusy(false);
+}
+async function openMulti(n) {
+  if (busy) return;
+  setBusy(true); $('sum').textContent = 'Открываем...'; lidOpen();
+  let total = 0; const counts = {};
+  for (let i = 0; i < n; i++) {
+    const r = rollReward();
+    state.coins += r.coins; state.opened++; total += r.coins; counts[r.emoji] = (counts[r.emoji] || 0) + 1;
+    $('sum').textContent = `Открыто ${i + 1} / ${n}...`; shake();
+    if (i % 3 === 0) Sound.coin();
+    await wait(75);
+  }
+  save(); updateAll();
+  $('sum').innerHTML = `<b>+${total} 🪙</b> ` + Object.entries(counts).map(([e, c]) => `${e}×${c}`).join(' · ');
+  const b = boxEl.getBoundingClientRect(); confetti(b.left + b.width / 2, b.top + b.height / 3, 140);
+  toast(`+${total} 🪙 за ${n} ящиков`, 'success'); Sound.win(); vibrate(40);
+  await wait(300); lidClose(); boxEl.classList.remove('shake'); setBusy(false);
+}
+boxEl.addEventListener('click', openOnce);
+multiBtn.addEventListener('click', () => openMulti(parseInt(multiBtn.dataset.amount) || 10));
+
+const canvas = $('confetti'), cx = canvas.getContext('2d');
+let parts = [];
+function resize() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = innerWidth * d; canvas.height = innerHeight * d;
+  canvas.style.width = innerWidth + 'px'; canvas.style.height = innerHeight + 'px';
+  cx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', resize); resize();
+function confetti(x, y, n) {
+  const cols = ['#3b9eff','#7dd3ff','#1a6fd4','#5ee6a0','#8fb0d9'];
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * 6.283, sp = 4 + Math.random() * 9;
+    parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4, s: 3 + Math.random() * 5, col: cols[i % cols.length], r: Math.random() * 3, vr: (Math.random() - .5) * .3, life: 70 + Math.random() * 40 });
+  }
+}
+const burst = () => confetti(innerWidth / 2, innerHeight / 2, 70);
+(function loop() {
+  cx.clearRect(0, 0, innerWidth, innerHeight);
+  parts = parts.filter(p => p.life > 0);
+  for (const p of parts) {
+    p.x += p.vx; p.y += p.vy; p.vy += .22; p.vx *= .99; p.r += p.vr; p.life--;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.col; cx.globalAlpha = Math.min(1, p.life / 30);
+    cx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * .6); cx.restore();
+  }
+  requestAnimationFrame(loop);
+})();
+let tt;
+function toast(text, kind = '') {
+  const t = $('toast'); t.textContent = text; t.className = kind;
+  requestAnimationFrame(() => t.classList.add('show'));
+  clearTimeout(tt); tt = setTimeout(() => { t.classList.remove('show'); t.className = ''; }, 2200);
+}
+
+Sound.sfx = state.sfxVolume; Sound.mus = state.musicVolume;
+applySkin(state.equippedSkin); updateAll(); updateMulti(); setupAuto(); switchScreen('menu');
+document.addEventListener('click', () => {
+  Sound.init(); Sound.sfx = state.sfxVolume;
+  if (Sound.ctx && Sound.ctx.state === 'suspended') Sound.ctx.resume();
+  if (state.musicVolume > .01) Sound.start();
+}, { once: true });
+</script>
+</body>
+</html>
