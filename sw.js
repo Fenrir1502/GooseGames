@@ -20,6 +20,7 @@ const FILES = [
   'photosynthesis.html',
   'boxtay.html',
   'Funny%20farm.html',
+  'GooseRunner.html',
 
   // обычные иконки
   'casino-icon.png',
@@ -28,6 +29,7 @@ const FILES = [
   'photosynthesis-icon.png',
   'boxtay-icon.png',
   'farm-icon.png',
+  'runner-icon.png',
 
   // новогодние иконки (если какой-то нет на сайте, она просто пропустится)
   'casino-icon-newyear.png',
@@ -36,6 +38,7 @@ const FILES = [
   'photosynthesis-icon-newyear.png',
   'boxtay-icon-newyear.png',
   'farm-icon-newyear.png'
+  'runner-icon-newyear.png'
 ];
 
 self.addEventListener('install', (event) => {
