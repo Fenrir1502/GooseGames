@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ящик тайн — новогодняя версия</title>
+<style>
+:root{--bg:#071024;--bgimg:radial-gradient(ellipse 90% 16% at 50% 100%,rgba(255,255,255,.16),transparent),radial-gradient(ellipse at 50% 0%,rgba(80,160,255,.24),transparent 55%);--surface:linear-gradient(180deg,rgba(120,180,255,.08),rgba(120,180,255,.02)),linear-gradient(135deg,#0f1e3d,#0a152a);--line:rgba(120,180,255,.25);--tx:#eaf3ff;--mut:#8fb0d9;--accent:#6fc3ff;--acc-tx:#05183a;--title:#eaf3ff;--btn:linear-gradient(180deg,#7dd3ff 0%,#3b9eff 55%,#1a6fd4 100%);--btn-tx:#04183a;--btn-sh:0 4px 18px rgba(59,158,255,.45);--sh:0 6px 24px rgba(0,0,0,.35);--tile:rgba(255,255,255,.05);--r:22px;--font:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',system-ui,sans-serif;--fc:#5ee6a0;--g1:#6fc3ff;--g2:#ffffff;--g3:#ffd34d;--g4:#a855f7}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{min-height:100vh;background:var(--bg);background-image:var(--bgimg,none);background-attachment:fixed;color:var(--tx);font:16px/1.55 var(--font);padding:max(16px,env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom))}
+main{max-width:680px;margin:0 auto;display:grid;gap:16px}
+.hero{display:flex;gap:16px;align-items:center;padding:18px 0 10px}
+.icon-box{position:relative;flex:none;width:96px;height:96px;border:2px solid color-mix(in srgb,var(--accent) 35%,transparent);border-radius:22%;background:var(--surface);display:grid;place-items:center;overflow:hidden;text-decoration:none;color:inherit;box-shadow:0 8px 20px rgba(0,0,0,.5);transition:transform .15s ease-out,border-color .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent}
+.icon-box:active{transform:scale(.9)}
+.icon-box:active img{filter:brightness(.7)}
+@media (hover:hover){.icon-box:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 12px 25px color-mix(in srgb,var(--accent) 28%,transparent)}}
+.icon-box .ph{font-size:42px;opacity:.5}
+.icon-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--bg)}
+h1{font-family:var(--hfont,var(--font));font-weight:900;font-size:clamp(1.7rem,7vw,2.4rem);line-height:1.1;color:var(--title)}
+.tag{color:var(--tagc,var(--mut));margin-top:6px}
+.play{display:block;text-align:center;padding:14px;border-radius:var(--r);font-weight:800;font-size:1.1rem;text-decoration:none;color:var(--btn-tx);background:var(--btn);box-shadow:var(--btn-sh)}
+.play:active{transform:translateY(2px)}
+.facts{display:flex;gap:8px;flex-wrap:wrap}
+.fact{flex:1 1 90px;padding:10px 12px;border:1px solid var(--line);border-radius:calc(var(--r)*.65);background:var(--tile)}
+.fact small{display:block;color:var(--mut);font-size:.78rem}
+.fact b{font-size:1.15rem;color:var(--fc,var(--accent))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh);color:var(--ctx,var(--tx))}
+h2,summary{font-size:1.12rem;font-weight:800;color:var(--ctitle,var(--title))}
+h2{margin-bottom:8px}
+.card p+p{margin-top:10px}
+summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"\25BE";transition:transform .2s}
+details[open] summary::after{transform:rotate(180deg)}
+details[open] .body{animation:open .25s ease-out}
+@keyframes open{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin-top:14px;display:grid;gap:12px}
+ol.steps li{counter-increment:s;display:flex;gap:12px}
+ol.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:var(--sr,50%);background:var(--accent);color:var(--acc-tx);font-weight:800;display:grid;place-items:center;font-size:.85rem}
+.tip{margin-top:14px;padding:10px 12px;border-left:4px solid var(--accent);background:var(--tile);border-radius:8px;color:var(--ctx,var(--tx))}
+.grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}
+.grid li{padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:calc(var(--r)*.6);background:var(--tile)}
+.grid b{display:block}
+.grid span{color:var(--mut);font-size:.9rem}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){.icon-box{width:80px;height:80px}}
+
+
+body.ny{padding-top:calc(max(16px,env(safe-area-inset-top)) + 26px)}
+main{position:relative;z-index:1}
+body.ny::before,body.ny::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0}
+body.ny::before{background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(3px 3px at 90px 70px,#fff,transparent),radial-gradient(2px 2px at 160px 120px,#fff,transparent),radial-gradient(3px 3px at 60px 160px,#fff,transparent),radial-gradient(2px 2px at 130px 20px,#fff,transparent);background-size:200px 200px;opacity:.75;animation:snowA 14s linear infinite}
+body.ny::after{background-image:radial-gradient(4px 4px at 40px 60px,#fff,transparent),radial-gradient(3px 3px at 150px 150px,#fff,transparent),radial-gradient(4px 4px at 230px 40px,#fff,transparent);background-size:300px 300px;opacity:.55;animation:snowB 22s linear infinite}
+@keyframes snowA{to{background-position:0 200px}}
+@keyframes snowB{to{background-position:0 300px}}
+.garland{position:absolute;top:env(safe-area-inset-top,0px);left:0;right:0;height:28px;z-index:2;pointer-events:none;background-image:radial-gradient(circle at 15px 14px,var(--g1) 6px,transparent 7px),radial-gradient(circle at 45px 14px,var(--g2) 6px,transparent 7px),radial-gradient(circle at 75px 14px,var(--g3) 6px,transparent 7px),radial-gradient(circle at 105px 14px,var(--g4) 6px,transparent 7px),linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,.4));background-size:120px 28px,120px 28px,120px 28px,120px 28px,100% 2px;background-position:0 0,0 0,0 0,0 0,0 5px;background-repeat:repeat-x,repeat-x,repeat-x,repeat-x,no-repeat;filter:drop-shadow(0 0 5px rgba(255,255,255,.45))}
+.nycard{position:relative;overflow:hidden;padding-top:26px}
+.nycard::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(135deg,#e5383b 0 10px,#fff 10px 20px)}
+@media (prefers-reduced-motion:reduce){body.ny::before,body.ny::after{display:none}}
+
+</style>
+</head>
+<body class="ny">
+<div class="garland" aria-hidden="true"></div>
+<main>
+<header class="hero">
+<a class="icon-box" id="boxtay-icon-newyear" href="boxtay.html" aria-label="Играть: Ящик тайн"><span class="ph" aria-hidden="true">🧭</span><img src="boxtay-icon-newyear.png" alt="" onerror="this.style.display='none'"></a>
+<div><h1>Ящик тайн</h1><p class="tag">Открывай ящики в праздничном настроении</p></div>
+</header>
+<a class="play" href="boxtay.html">Играть</a>
+<div class="facts"><div class="fact"><small>Миров</small><b>4</b></div><div class="fact"><small>Ящик Пасс</small><b>30 ур.</b></div><div class="fact"><small>Премиум</small><b>2500 🪙</b></div></div>
+<section class="card"><h2>Об игре</h2><p>Коллекционный кликер: касайся ящика, открывай его и смотри, что внутри. Выпадает золото, скины и бусты, а редкие находки подсвечены цветной рамкой.</p><p>Золото тратится в магазине на скины и бусты. Чем больше накопишь, тем дальше откроются новые миры.</p></section>
+<section class="card nycard"><h2>Ящик Пасс II «Новый год»</h2><p>В наградах пасса есть скин «Новый год»: красный ящик с белым металлом, снежинками, звёздами и бантом. Пасс действует до 1 января 2027.</p></section>
+<details class="card"><summary>Как играть</summary><div class="body"><ol class="steps"><li><span>Коснись ящика на главном экране, чтобы открыть его.</span></li><li><span>Собирай золото. Счётчики наверху показывают золото, число открытых ящиков, скины и бусты.</span></li><li><span>Загляни в магазин и купи скин или буст. Купленное лежит в инвентаре.</span></li><li><span>Выполняй квесты, например «Открой 5 ящиков», и получай опыт для Ящик Пасса.</span></li><li><span>Копи золото: следующие миры открываются за 10 000, 25 000 и 50 000 🪙.</span></li></ol><p class="tip">Бусты умножают монеты (×2, ×3), повышают удачу и позволяют открывать ящики пачкой. Промокод вводится в настройках.</p></div></details>
+<section class="card"><h2>Карта миров</h2><ul class="grid"><li style="--c:#6fc3ff"><b>🌍 Начало</b><span>Стартовый мир.</span></li><li style="--c:#ff7a3d"><b>🔥 Пламя</b><span>Нужно 10 000 🪙.</span></li><li style="--c:#a855f7"><b>💎 Космос</b><span>Нужно 25 000 🪙.</span></li><li style="--c:#ff8fc7"><b>🌸 Цветы</b><span>Нужно 50 000 🪙.</span></li></ul><p>Цвет рамки показывает редкость находки: зелёная, синяя, фиолетовая и красная. В коллекции есть скины Аметист, Инферно, Феникс, Неон, Космос, Гусь и сезонные Хэллоуин, Новый год, Арлекин.</p></section>
+</main>
+</body>
+</html>
