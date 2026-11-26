@@ -4,7 +4,7 @@
 // Обновления подтягиваются сами: файл берётся из кэша, а свежая копия качается фоном
 // и будет показана при следующем запуске. Номер ниже менять нужно только для полной очистки кэша.
 
-const CACHE = 'goose-games-v1';
+const CACHE = 'goose-games-v2';
 
 const FILES = [
   './',
@@ -37,7 +37,7 @@ const FILES = [
   'trader-icon-newyear.png',
   'photosynthesis-icon-newyear.png',
   'boxtay-icon-newyear.png',
-  'farm-icon-newyear.png'
+  'farm-icon-newyear.png',
   'runner-icon-newyear.png'
 ];
 
