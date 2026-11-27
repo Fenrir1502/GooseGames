@@ -10,11 +10,11 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
-            background: radial-gradient(circle at 50% 0%, #1a2a3a 0%, #05000d 70%);
+            background: radial-gradient(70% 45% at 50% 0%, rgba(80, 160, 255, 0.22), transparent 65%), radial-gradient(55% 40% at 0% 100%, rgba(255, 34, 68, 0.18), transparent 60%), radial-gradient(50% 40% at 100% 60%, rgba(255, 215, 0, 0.08), transparent 60%), #05000d;
             color: white; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             min-height: 100vh; min-height: 100dvh;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; padding: 20px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            text-align: center; padding: 20px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); padding-bottom: calc(112px + env(safe-area-inset-bottom));
             overflow-x: hidden; position: relative;
         }
         .garland { position: fixed; top: 0; left: 0; right: 0; height: 10px; display: flex; justify-content: space-around; pointer-events: none; z-index: 10; }
@@ -29,52 +29,120 @@
         @keyframes blink { 0% { opacity: 0.4; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }
         
         #snow-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
-        
         .goose-logo {
-            width: 140px; height: 140px; border-radius: 50%;
-            border: 3px solid #ffd700; box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 34, 68, 0.2);
-            margin-bottom: 15px; object-fit: cover; animation: floatLogo 4s ease-in-out infinite;
-            position: relative; z-index: 2;
+            width: 128px; height: 128px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #ffd700; box-shadow: 0 0 0 7px rgba(255, 215, 0, 0.10), 0 0 40px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 34, 68, 0.25);
+            margin-bottom: 16px; animation: floatLogo 4s ease-in-out infinite; position: relative; z-index: 2;
         }
         @keyframes floatLogo { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
-        h1 { color: #ffd700; font-size: 2.5em; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 34, 68, 0.3); letter-spacing: 2px; position: relative; z-index: 2; }
-        p { color: #aaddff; font-size: 1.1em; margin-bottom: 25px; position: relative; z-index: 2; }
+        h1 {
+            font-size: 2.4em; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 10px;
+            background: linear-gradient(180deg, #fff3b8 0%, #ffd700 55%, #e59a00 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.35)); position: relative; z-index: 2;
+        }
+        p {
+            display: inline-block; padding: 6px 16px; margin-bottom: 26px; border-radius: 999px;
+            font-size: 0.95em; color: #bfe3ff; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(150, 210, 255, 0.25); position: relative; z-index: 2;
+        }
 
-        .icon-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-            width: 100%; max-width: 420px; margin-top: 10px; margin-bottom: 30px;
-            position: relative; z-index: 2;
+        .icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 420px; margin-bottom: 8px; position: relative; z-index: 2; }
+        .app-icon {
+            display: flex; flex-direction: column; align-items: center; text-decoration: none; color: white;
+            min-width: 0; padding: 10px 10px 12px; border-radius: 28px;
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+            border: 1px solid rgba(255, 215, 0, 0.28); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+            -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+            transition: transform 0.15s ease-out, border-color 0.2s, box-shadow 0.2s;
+            animation: cardIn 0.5s ease-out backwards;
         }
-        .app-icon { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: white; transition: transform 0.15s ease-out; }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px) scale(0.96); } }
+        .app-icon:nth-child(3) { animation-delay: 0.08s; } .app-icon:nth-child(4) { animation-delay: 0.14s; } .app-icon:nth-child(5) { animation-delay: 0.20s; }
+        .app-icon:nth-child(6) { animation-delay: 0.26s; } .app-icon:nth-child(7) { animation-delay: 0.32s; } .app-icon:nth-child(8) { animation-delay: 0.38s; } .app-icon:nth-child(9) { animation-delay: 0.44s; }
         .app-icon img {
-            width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 22%;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.15);
-            margin-bottom: 10px; border: 2px solid rgba(255, 215, 0, 0.4); transition: filter 0.15s, border-color 0.15s;
+            width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 22%; display: block;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.14); transition: filter 0.15s;
         }
-        .app-icon span { font-size: 0.95em; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.8); text-align: center; letter-spacing: 0.5px; color: #fff4d8; }
+        .app-icon span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.95em; font-weight: 700; letter-spacing: 0.4px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8); color: #fff4d8; }
         .app-icon:last-child:nth-child(odd) { grid-column: 1 / -1; justify-self: center; width: calc(50% - 10px); }
-        .app-icon:active { transform: scale(0.90); }
-        .app-icon:active img { filter: brightness(0.7); }
+        .icon-box { position: relative; width: 100%; margin-bottom: 10px; }
+        .badge-clip { position: absolute; inset: 0; border-radius: 22%; overflow: hidden; pointer-events: none; }
+        .badge { display: none; position: absolute; top: 16px; right: -30px; width: 104px; padding: 3px 0; transform: rotate(45deg); text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; line-height: 1.2; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+        .badge.beta { display: block; background: #1faa4f; }
+        .badge.release { display: block; background: #d9202f; }
+        .badge.soon { display: block; background: #5b6b86; }
+        .app-icon.soon { cursor: default; }
+        .app-icon.soon img, .app-icon.soon:active img { filter: grayscale(0.7) brightness(0.8); }
+        .app-icon.soon span { opacity: 0.65; }
+        .app-icon.soon:active { transform: none; }
+        @media (hover: hover) { .app-icon.soon:hover { transform: none; } }
+        .app-icon.featured { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 16px; padding: 12px 18px 12px 12px; text-align: left; border-color: rgba(255, 215, 0, 0.5); background: linear-gradient(135deg, rgba(255, 34, 68, 0.20), rgba(255, 215, 0, 0.12)); }
+        .app-icon.featured .icon-box { width: 34%; max-width: 124px; margin-bottom: 0; flex-shrink: 0; }
+        .app-icon.featured .badge { top: 12px; right: -34px; width: 100px; }
+        .featured-info { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
+        .featured-tag { font-size: 0.68em; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #ffd700; }
+        .featured-title { font-size: 1.5em; font-weight: 800; letter-spacing: 0.5px; color: #fff4d8; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
+        .featured-cta { margin-top: 4px; padding: 7px 18px; border-radius: 999px; background: linear-gradient(135deg, #ffd700, #f0a500); color: #2a1a00; font-size: 0.85em; font-weight: 800; box-shadow: 0 4px 14px rgba(255, 190, 0, 0.35); }
+        .section-label { grid-column: 1 / -1; text-align: left; padding: 6px 4px 0; font-size: 0.72em; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255, 255, 255, 0.45); position: relative; z-index: 2; }
+        .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; justify-content: center; padding: 28px 20px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(to top, rgba(5, 0, 13, 0.92) 45%, rgba(5, 0, 13, 0)); pointer-events: none; }
+        .dock .tg-btn { pointer-events: auto; }
+        body { transition: opacity 0.18s ease; }
+        body.leaving { opacity: 0; }
+        .app-icon:active { transform: scale(0.94); }
+        .app-icon:active img { filter: brightness(0.75); }
         @media (hover: hover) {
-            .app-icon:hover { transform: translateY(-5px); }
-            .app-icon:hover img { border-color: rgba(255, 215, 0, 1); box-shadow: 0 12px 25px rgba(255, 215, 0, 0.4), 0 0 30px rgba(255, 34, 68, 0.2); }
+            .app-icon:hover { transform: translateY(-5px); border-color: rgba(255, 215, 0, 0.7); box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 215, 0, 0.22); }
         }
 
         .tg-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-            background: linear-gradient(135deg, #cc0020, #800010); color: #fff4d8;
-            padding: 14px 28px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 1em;
-            box-shadow: 0 6px 20px rgba(204, 0, 32, 0.6), 0 0 20px rgba(255, 215, 0, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s; border: 2px solid #ffd700; width: 100%; max-width: 320px;
-            position: relative; z-index: 2; animation: btnPulse 3s ease-in-out infinite;
+            position: relative; overflow: hidden; z-index: 2;
+            display: flex; align-items: center; gap: 14px;
+            width: 100%; max-width: 340px; padding: 9px 18px 9px 10px;
+            border-radius: 50px; text-decoration: none; text-align: left; color: #fff4d8;
+            background: linear-gradient(135deg, #d4122e, #80000f); border: 2px solid #ffd700;
+            box-shadow: 0 8px 24px rgba(204, 0, 32, 0.6), 0 0 20px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: btnPulse 3s ease-in-out infinite;
         }
+        .tg-btn::after {
+            content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%;
+            background: linear-gradient(100deg, transparent, rgba(255, 230, 150, 0.45), transparent);
+            transform: skewX(-20deg); pointer-events: none; animation: tgShine 4.5s ease-in-out infinite;
+        }
+        @keyframes tgShine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
         @keyframes btnPulse {
-            0%, 100% { box-shadow: 0 6px 20px rgba(204, 0, 32, 0.6), 0 0 20px rgba(255, 215, 0, 0.3); }
-            50% { box-shadow: 0 6px 25px rgba(204, 0, 32, 0.8), 0 0 35px rgba(255, 215, 0, 0.6); }
+            0%, 100% { box-shadow: 0 6px 20px rgba(204, 0, 32, 0.6), 0 0 20px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+            50% { box-shadow: 0 6px 25px rgba(204, 0, 32, 0.8), 0 0 35px rgba(255, 215, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
         }
-        .tg-btn svg { width: 24px; height: 24px; flex-shrink: 0; }
+        .tg-ico { display: flex; flex-shrink: 0; color: #fff4d8; --tg-ink: #b3102a; --tg-ink2: #7d0a1c; }
+        .tg-ico svg { width: 44px; height: 44px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); }
+        .tg-plane .w1 { fill: var(--tg-ink); stroke: var(--tg-ink); }
+        .tg-plane .w2 { fill: var(--tg-ink2); stroke: var(--tg-ink2); }
+        .tg-text { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.25; }
+        .tg-sub { font-size: 0.75em; font-weight: 500; opacity: 0.85; letter-spacing: 0.3px; }
+        .tg-title { font-size: 1.1em; font-weight: 800; letter-spacing: 0.5px; }
+        .tg-arrow { width: 20px; height: 20px; flex-shrink: 0; opacity: 0.85; transition: transform 0.2s; }
         .tg-btn:active { transform: scale(0.96); }
-        @media (hover: hover) { .tg-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(204, 0, 32, 0.8), 0 0 40px rgba(255, 215, 0, 0.8); } }
+        @media (hover: hover) {
+            .tg-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(204, 0, 32, 0.8), 0 0 40px rgba(255, 215, 0, 0.8); }
+            .tg-btn:hover .tg-arrow { transform: translateX(4px); }
+        }
+        @media (prefers-reduced-motion: reduce) { .goose-logo, .app-icon, .tg-btn, .tg-btn::after { animation: none; } }
+        /* Неон: плитки в шахматном порядке */
+        body { background: radial-gradient(70% 40% at 50% 0%, rgba(255,34,68, 0.22), transparent 65%), repeating-linear-gradient(0deg, transparent 0 31px, rgba(57,255,136, 0.08) 31px 32px), repeating-linear-gradient(90deg, transparent 0 31px, rgba(57,255,136, 0.08) 31px 32px), #06000f; }
+        .goose-logo { border-color: #39ff88; box-shadow: 0 0 0 6px rgba(57,255,136, 0.12), 0 0 30px #39ff88, 0 0 60px rgba(255,34,68, 0.4); }
+        h1 { background: none; -webkit-background-clip: border-box; background-clip: border-box; -webkit-text-fill-color: #fff; color: #fff; filter: none; font-size: 2.1em; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 8px #39ff88, 0 0 22px #39ff88, 0 0 40px #ff2244; }
+        p { background: transparent; border-color: #ff2244; color: #fff; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8em; box-shadow: 0 0 12px rgba(255,34,68, 0.45); }
+        .app-icon { background: rgba(10, 0, 30, 0.7); border: 1.5px solid #39ff88; border-radius: 18px; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 0 14px rgba(57,255,136, 0.35), inset 0 0 14px rgba(57,255,136, 0.12); }
+        .app-icon:nth-of-type(4n+3), .app-icon:nth-of-type(4n) { border-color: #ff2244; box-shadow: 0 0 14px rgba(255,34,68, 0.35), inset 0 0 14px rgba(255,34,68, 0.12); }
+        .app-icon.featured { border-color: #ffd700; background: rgba(30, 20, 0, 0.55); box-shadow: 0 0 16px rgba(255,215,0, 0.45), inset 0 0 16px rgba(255,215,0, 0.12); }
+        .app-icon span { font-family: ui-monospace, 'SF Mono', Consolas, monospace; text-transform: uppercase; letter-spacing: 1.2px; font-size: 0.8em; color: #fff; text-shadow: 0 0 8px rgba(57,255,136, 0.9); }
+        .featured-title { font-family: ui-monospace, 'SF Mono', Consolas, monospace; text-transform: uppercase; color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        .featured-tag { color: #ff2244; text-shadow: 0 0 8px #ff2244; }
+        .featured-cta { background: transparent; border: 1.5px solid #ffd700; color: #ffd700; box-shadow: 0 0 12px rgba(255,215,0, 0.5); text-shadow: 0 0 6px #ffd700; }
+        .section-label { color: #39ff88; text-shadow: 0 0 8px rgba(57,255,136, 0.7); }
+        .section-label::before { content: "// "; }
+        .dock { background: linear-gradient(to top, rgba(6, 0, 15, 0.94) 45%, rgba(6, 0, 15, 0)); }
     </style>
 </head>
 <body>
@@ -89,43 +157,73 @@
     <p>С Новым Годом! Выбирай игру:</p>
     
     <div class="icon-grid">
+        <!-- НОВАЯ ИГРА (карточка-витрина: класс featured). «скоро» → бета / релиз / пусто -->
+        <a href="Taiga%20Survival_ind_newyear.html" class="app-icon featured">
+            <div class="icon-box">
+                <img src="taiga-icon-newyear.png" onerror="this.src='taiga-icon.png'" alt="Тайга">
+                <div class="badge-clip"><div class="badge">скоро</div></div>
+            </div>
+            <div class="featured-info"><div class="featured-tag">Новинка</div><div class="featured-title">Тайга</div><div class="featured-cta">Играть ›</div></div>
+        </a>
+        <div class="section-label">Все игры</div>
         <a href="casino_ind_newyear.html" class="app-icon">
-            <img src="casino-icon-newyear.png" onerror="this.src='casino-icon.png'" alt="Казино">
+            <div class="icon-box">
+                <img src="casino-icon-newyear.png" onerror="this.src='casino-icon.png'" alt="Казино">
+                <div class="badge-clip"><div class="badge"></div></div>
+            </div>
             <span>Казино</span>
         </a>
         <a href="life_ind_newyear.html" class="app-icon">
-            <img src="life-icon-newyear.png" onerror="this.src='life-icon.png'" alt="Жизнь">
+            <div class="icon-box">
+                <img src="life-icon-newyear.png" onerror="this.src='life-icon.png'" alt="Жизнь">
+                <div class="badge-clip"><div class="badge"></div></div>
+            </div>
             <span>Жизнь</span>
         </a>
         <a href="EraTrader_ind_newyear.html" class="app-icon">
-            <img src="trader-icon-newyear.png" onerror="this.src='trader-icon.png'" alt="Торговец Эпох">
+            <div class="icon-box">
+                <img src="trader-icon-newyear.png" onerror="this.src='trader-icon.png'" alt="Торговец Эпох">
+                <div class="badge-clip"><div class="badge"></div></div>
+            </div>
             <span>Торговец Эпох</span>
         </a>
         <a href="photosynthesis_ind_newyear.html" class="app-icon">
-            <img src="photosynthesis-icon-newyear.png" onerror="this.src='photosynthesis-icon.png'" alt="Фотосинтез">
+            <div class="icon-box">
+                <img src="photosynthesis-icon-newyear.png" onerror="this.src='photosynthesis-icon.png'" alt="Фотосинтез">
+                <div class="badge-clip"><div class="badge"></div></div>
+            </div>
             <span>Фотосинтез</span>
         </a>
         <a href="boxtay_ind_newyear.html" class="app-icon">
-            <img src="boxtay-icon-newyear.png" onerror="this.src='boxtay-icon.png'" alt="Ящик тайн">
+            <div class="icon-box">
+                <img src="boxtay-icon-newyear.png" onerror="this.src='boxtay-icon.png'" alt="Ящик тайн">
+                <div class="badge-clip"><div class="badge"></div></div>
+            </div>
             <span>Ящик тайн</span>
         </a>
         <a href="Funny_farm_ind_newyear.html" class="app-icon">
-            <img src="farm-icon-newyear.png" onerror="this.src='farm-icon.png'" alt="Весёлая ферма">
+            <div class="icon-box">
+                <img src="farm-icon-newyear.png" onerror="this.src='farm-icon.png'" alt="Весёлая ферма">
+                <div class="badge-clip"><div class="badge"></div></div>
+            </div>
             <span>Весёлая ферма</span>
         </a>
-        <!-- НОВАЯ ИГРА -->
         <a href="GooseRunner_ind_newyear.html" class="app-icon">
-            <img src="runner-icon-newyear.png" onerror="this.src='runner-icon.png'" alt="Гусь Run">
+            <div class="icon-box">
+                <img src="runner-icon-newyear.png" onerror="this.src='runner-icon.png'" alt="Гусь Run">
+                <div class="badge-clip"><div class="badge">бета</div></div>
+            </div>
             <span>Гусь Run</span>
         </a>
     </div>
 
+    <div class="dock">
     <a href="https://t.me/Goose_games1502" target="_blank" rel="noopener" class="tg-btn">
-        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-.962 4.084-1.36 5.417-.168.567-.312 1.058-.44 1.372-.18.428-.394.63-.66.646-.54.032-1.023-.358-1.44-.624-.84-.548-1.312-.89-2.126-1.425-.94-.618-.33-.958.205-1.512.14-.145 2.57-2.354 2.617-2.554.006-.025.011-.118-.044-.166-.055-.048-.136-.032-.195-.019-.084.019-1.42.903-4.01 2.653-.38.26-.722.387-1.03.38-.338-.007-1.42-.275-2.31-.56-.994-.345-.905-.586.19-1.025 3.95-1.72 6.584-2.854 7.9-3.402 3.76-1.56 4.54-1.832 5.05-1.84.112-.002.362.026.525.158.138.111.176.266.194.373.018.107.04.348.023.537z"/>
-        </svg>
-        Подписаться на Goose Games
+        <span class="tg-ico"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="currentColor"/><g class="tg-plane" stroke-width="0.6" stroke-linejoin="round"><path class="w1" d="M6.2 11.55 L17.8 6.85 L17.3 9.45 L10.8 13.3 Z"/><path class="w2" d="M10.8 13.3 L17.3 9.45 L15.8 17.15 Z"/></g></svg></span>
+        <span class="tg-text"><span class="tg-sub">Подписаться на канал</span><span class="tg-title">Goose Games</span></span>
+        <svg class="tg-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
     </a>
+    </div>
 
     <script>
         (function() {
@@ -162,6 +260,32 @@
             });
         })();
     </script>
+<script>
+// Плашки на иконках: текст внутри .badge задаёт вид.
+// пусто — не видна; бета — зелёная «beta»; релиз — красная «release»; скоро — серая «soon», игра закрыта
+document.querySelectorAll('.badge').forEach(function (el) {
+    var t = el.textContent.trim().toLowerCase();
+    if (t === 'бета' || t === 'beta') { el.textContent = 'beta'; el.classList.add('beta'); }
+    else if (t === 'релиз' || t === 'release') { el.textContent = 'release'; el.classList.add('release'); }
+    else if (t === 'скоро' || t === 'soon') {
+        el.textContent = 'soon'; el.classList.add('soon');
+        var tile = el.closest('.app-icon');
+        if (tile) { tile.classList.add('soon'); tile.setAttribute('aria-disabled', 'true'); var cta = tile.querySelector('.featured-cta'); if (cta) cta.textContent = 'Скоро'; }
+    }
+    else { el.textContent = ''; }
+});
+document.querySelectorAll('.app-icon').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+        if (a.classList.contains('soon')) { e.preventDefault(); return; }
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+        e.preventDefault();
+        if (navigator.vibrate) navigator.vibrate(12);
+        document.body.classList.add('leaving');
+        setTimeout(function () { location.href = a.href; }, 180);
+    });
+});
+window.addEventListener('pageshow', function () { document.body.classList.remove('leaving'); });
+</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
